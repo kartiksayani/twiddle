@@ -21,6 +21,36 @@ private final class TwiddlePanel: NSPanel {
 }
 
 @MainActor
+private final class HeaderDragView: NSView {
+  var begin: () -> Void = {}
+  var move: (NSPoint) -> Void = { _ in }
+  var finish: () -> Void = {}
+  var reset: () -> Void = {}
+  private var start: NSPoint?
+
+  override func mouseDown(with event: NSEvent) {
+    if event.clickCount == 2 {
+      reset()
+      return
+    }
+    start = NSEvent.mouseLocation
+    begin()
+  }
+
+  override func mouseDragged(with event: NSEvent) {
+    guard let start else { return }
+    let mouse = NSEvent.mouseLocation
+    move(NSPoint(x: mouse.x - start.x, y: mouse.y - start.y))
+  }
+
+  override func mouseUp(with event: NSEvent) {
+    guard start != nil else { return }
+    start = nil
+    finish()
+  }
+}
+
+@MainActor
 final class PanelController: NSObject, NSWindowDelegate {
   private var presence = PanelPresence()
   private var mouseMonitor: Any?
@@ -29,6 +59,10 @@ final class PanelController: NSObject, NSWindowDelegate {
   private let capsulePanel: NSPanel
   private let panel: TwiddlePanel
   private let model: PracticeModel
+  private var dragOrigin = NSPoint.zero
+  var openSettings: () -> Void = {} {
+    didSet { panel.router?.openSettings = openSettings }
+  }
 
   init(model: PracticeModel) {
     self.model = model
@@ -81,6 +115,19 @@ final class PanelController: NSObject, NSWindowDelegate {
     hosting.frame = material.bounds
     hosting.autoresizingMask = [.width, .height]
     material.addSubview(hosting)
+    let header = HeaderDragView(
+      frame: NSRect(
+        x: 0, y: Theme.panelSize.height - Theme.headerHeight,
+        width: Theme.panelSize.width, height: Theme.headerHeight))
+    header.autoresizingMask = [.width, .minYMargin]
+    header.begin = { [weak self] in
+      guard let self else { return }
+      self.dragOrigin = self.panel.frame.origin
+    }
+    header.move = { [weak self] delta in self?.drag(by: delta) }
+    header.finish = { [weak self] in self?.saveOffset() }
+    header.reset = { [weak self] in self?.resetPosition() }
+    material.addSubview(header)
     panel.contentView = material
     panel.delegate = self
     panel.router = KeyRouter(
@@ -109,6 +156,16 @@ final class PanelController: NSObject, NSWindowDelegate {
     timer?.invalidate()
     panel.router?.dismissCapsule()
     model.quit()
+  }
+
+  func practise() {
+    if presence.state == .hidden { handle(.hotkey) }
+  }
+
+  func openProgress() {
+    handle(.escape)
+    model.openProgress()
+    handle(.hotkey)
   }
 
   func windowDidResignKey(_ notification: Notification) { handle(.resignKey) }
@@ -158,7 +215,7 @@ final class PanelController: NSObject, NSWindowDelegate {
     let visible = screen.visibleFrame
     let placement = PanelLayout.clamp(
       .init(x: panel.frame.minX, y: panel.frame.minY, width: size.width, height: size.height),
-      to: .init(x: visible.minX, y: visible.minY, width: visible.width, height: visible.height))
+      to: .init(visible))
     let frame = NSRect(
       x: placement.x, y: placement.y, width: placement.width, height: placement.height)
     panel.setFrame(frame, display: true)
@@ -175,9 +232,15 @@ final class PanelController: NSObject, NSWindowDelegate {
     let mouse = NSEvent.mouseLocation
     if let screen = NSScreen.screens.first(where: { $0.frame.contains(mouse) }) ?? NSScreen.main {
       let visible = screen.visibleFrame
-      panel.setFrameOrigin(
-        NSPoint(x: visible.midX - panel.frame.width / 2, y: visible.minY + Theme.bottomOffset)
-      )
+      let placement = PanelLayout.position(
+        width: Theme.panelSize.width, height: model.panelHeight,
+        in: .init(visible),
+        offset: model.state.panelOffset, bottom: Theme.bottomOffset)
+      panel.setFrame(
+        NSRect(
+          x: placement.x, y: placement.y,
+          width: placement.width, height: placement.height), display: true)
+      (panel.contentView as? NSVisualEffectView)?.updateMask(size: panel.frame.size)
     }
     resize()
     let destination = panel.frame
@@ -203,6 +266,41 @@ final class PanelController: NSObject, NSWindowDelegate {
       panel.animator().alphaValue = 1
     }
   }
+
+  private func drag(by delta: NSPoint) {
+    guard
+      let screen = NSScreen.screens.first(where: { $0.frame.contains(NSEvent.mouseLocation) })
+        ?? panel.screen
+    else { return }
+    let visible = screen.visibleFrame
+    let frame = PanelLayout.clamp(
+      .init(
+        x: dragOrigin.x + delta.x, y: dragOrigin.y + delta.y,
+        width: panel.frame.width, height: panel.frame.height),
+      to: .init(visible))
+    panel.setFrameOrigin(NSPoint(x: frame.x, y: frame.y))
+  }
+
+  private func saveOffset() {
+    guard let screen = panel.screen else { return }
+    let visible = screen.visibleFrame
+    model.setPanelOffset(
+      PanelLayout.offset(
+        of: .init(panel.frame),
+        in: .init(visible),
+        bottom: Theme.bottomOffset))
+  }
+
+  private func resetPosition() {
+    model.setPanelOffset(.init())
+    guard let screen = panel.screen else { return }
+    let visible = screen.visibleFrame
+    let frame = PanelLayout.position(
+      width: panel.frame.width, height: panel.frame.height,
+      in: .init(visible),
+      offset: .init(), bottom: Theme.bottomOffset)
+    panel.setFrameOrigin(NSPoint(x: frame.x, y: frame.y))
+  }
 }
 
 extension NSVisualEffectView {
@@ -212,5 +310,11 @@ extension NSVisualEffectView {
       NSBezierPath(roundedRect: rect, xRadius: Theme.radius, yRadius: Theme.radius).fill()
       return true
     }
+  }
+}
+
+extension PanelLayout.Rect {
+  fileprivate init(_ rect: NSRect) {
+    self.init(x: rect.minX, y: rect.minY, width: rect.width, height: rect.height)
   }
 }

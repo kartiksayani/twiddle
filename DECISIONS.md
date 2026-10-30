@@ -10,7 +10,7 @@
 | 2026-10-30 | JSON file instead of SwiftData. | Small bounded data, simple to test. |
 | 2026-10-30 | Stored resume text instead of a seed. | Survives corpus edits. |
 | 2026-10-30 | `NSStatusItem` instead of `MenuBarExtra`. | The app is AppKit-led, with no SwiftUI `App` scene. |
-| 2026-10-30 | Own settings `NSWindow`. | SwiftUI's `Settings` scene is unreliable in accessory apps. |
+| 2026-10-30 | Own settings `NSPanel`, non-activating. | SwiftUI's `Settings` scene is unreliable in accessory apps, and `NSApp.activate()` was declined in real use. |
 | 2026-10-30 | Hints grow the panel upwards and the text moves up. | The board's prototype does this, and 40 pt below the panel can't hold 116 pt. |
 | 2026-10-30 | Corpora are written for the project, and prose is pre-1931. | No third-party licences. |
 | 2026-10-30 | Ad hoc signing. | Personal app, and no signing identity is installed. |
@@ -20,3 +20,5 @@
 | 2026-10-30 | Delivery follows `ORCHESTRATOR.md`, a tighter version of Ariadne's: PR per milestone, one gate, tables before code, visual evidence, enforced doc limits. | Keeps Ariadne's learnings without its growth. |
 | 2026-10-30 | Views live in a separate `TwiddleUI` library. | They can be rendered to PNG in tests, so layout isn't written blind. |
 | 2026-10-31 | Practice lines wrap at 44 characters, not the board's 46. | SF Mono's 14.84 pt advance fits 45 cells in 668 pt, and the last cell must hold a trailing space or `↵`. |
+| 2026-10-31 | The macOS shortcut conflict check runs only while recording a new shortcut. | `⌃⌥Space` is macOS's enabled input-source shortcut, so checking at launch disabled Twiddle's own default. |
+| 2026-10-31 | `lastSprintLength` is the only sprint-length value. | A second copy in UserDefaults overrode `⌘S` choices on relaunch. |

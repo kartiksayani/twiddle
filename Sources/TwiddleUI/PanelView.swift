@@ -49,7 +49,7 @@ public struct PanelView: View {
         if model.view == .progress {
           ProgressView(data: model.progress)
         } else {
-          IntroView()
+          IntroView(hotkey: model.hotkey)
         }
       }
       if model.showsHints { HintsView(hint: model.hint) }

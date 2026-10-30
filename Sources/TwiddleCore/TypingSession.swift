@@ -1,5 +1,5 @@
 public struct TypingSession {
-  public enum MistakeMode: Sendable, CaseIterable {
+  public enum MistakeMode: String, Sendable, CaseIterable {
     case strict
     case forgiving
   }

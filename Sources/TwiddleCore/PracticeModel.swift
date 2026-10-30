@@ -42,7 +42,11 @@ public final class PracticeModel {
   public private(set) var result: SprintResult?
   public private(set) var contentNote: String?
   public private(set) var sprintElapsed: TimeInterval = 0
-  public var sprintLength: Int { state.lastSprintLength }
+  public private(set) var sprintLength: Int = 30
+  public var hotkey: Hotkey? {
+    if let settings { return settings.hotkey }
+    return .standard
+  }
   public var sprintRemaining: Int { max(0, Int(ceil(Double(sprintLength) - sprintElapsed))) }
   public var headerCounters: StatsTracker.Counters {
     mode == .flow
@@ -69,7 +73,8 @@ public final class PracticeModel {
   @ObservationIgnored private let content:
     (ContentProvider.Source, KeyStats) -> ContentProvider.Content
   @ObservationIgnored private let log: (any Error) -> Void
-  @ObservationIgnored private let mistakes: TypingSession.MistakeMode
+  @ObservationIgnored private var mistakes: TypingSession.MistakeMode
+  private let settings: Settings?
   @ObservationIgnored private var noteUntil: TimeInterval?
   @ObservationIgnored private var flowSessions: [ContentProvider.Source: TypingSession] = [:]
   @ObservationIgnored private var flowNotes: [ContentProvider.Source: String] = [:]
@@ -78,6 +83,7 @@ public final class PracticeModel {
 
   public init<R: RandomNumberGenerator>(
     store: Store, random: R, mistakes: TypingSession.MistakeMode = .strict,
+    settings: Settings? = nil,
     now: @escaping () -> TimeInterval = { ProcessInfo.processInfo.systemUptime },
     date: @escaping () -> Date = { Date() },
     log: @escaping (any Error) -> Void = {
@@ -89,6 +95,7 @@ public final class PracticeModel {
     self.date = date
     self.log = log
     self.mistakes = mistakes
+    self.settings = settings
     var random = random
     let provider = ContentProvider()
     content = { provider.content(for: $0, keyStats: $1, using: &random) }
@@ -96,6 +103,11 @@ public final class PracticeModel {
     state = loaded.state
     stats = StatsTracker(today: loaded.state.today.counters, keyStats: loaded.state.keyStats)
     if ![15, 30, 60].contains(state.lastSprintLength) { state.lastSprintLength = 30 }
+    if let settings {
+      source = settings.defaultSource
+      stats.setMode(settings.defaultMode, at: now())
+    }
+    sprintLength = state.lastSprintLength
     for error in loaded.errors { log(error) }
   }
 
@@ -107,6 +119,7 @@ public final class PracticeModel {
 
   public func summon() {
     guard !isVisible else { return }
+    mistakes = settings?.mistakes ?? mistakes
     view = .text
     resetDayIfNeeded()
     if mode == .sprint {
@@ -156,9 +169,7 @@ public final class PracticeModel {
     settleElapsedSprint(at: time)
     guard isVisible else { return }
     if case .toggleHints = command {
-      updateStats(at: time)
-      state.hintsOn.toggle()
-      save()
+      setHints(!hintsOn)
       return
     }
     if case .progress = command {
@@ -186,7 +197,7 @@ public final class PracticeModel {
       endCurrentRun(at: time)
       stats.setMode(.sprint, at: time)
       if cycle {
-        state.lastSprintLength = sprintLength == 15 ? 30 : sprintLength == 30 ? 60 : 15
+        setSprintLength(sprintLength == 15 ? 30 : sprintLength == 30 ? 60 : 15)
       }
       readySprint()
     case .source(let source):
@@ -250,6 +261,34 @@ public final class PracticeModel {
     finish()
     isVisible = false
   }
+
+  public func setHints(_ enabled: Bool) {
+    updateStats(at: now())
+    state.hintsOn = enabled
+    save()
+  }
+
+  public func setSprintLength(_ length: Int) {
+    guard [15, 30, 60].contains(length) else { return }
+    state.lastSprintLength = length
+    save()
+  }
+
+  public func setPanelOffset(_ offset: Store.PanelOffset) {
+    guard offset.x.isFinite, offset.y.isFinite else { return }
+    state.panelOffset = offset
+    save()
+  }
+
+  public func openProgress() {
+    if isVisible { hide() }
+    summon()
+    if !seenIntro { dismissIntro() }
+    state.capture(stats.keyStats)
+    view = .progress
+  }
+
+  public func refreshToday() { resetDayIfNeeded() }
 
   private func dismissIntro() {
     resetDayIfNeeded()
@@ -371,6 +410,7 @@ public final class PracticeModel {
   }
 
   private func readySprint() {
+    sprintLength = state.lastSprintLength
     session = newSession()
     sprintState = .ready
     sprintElapsed = 0
