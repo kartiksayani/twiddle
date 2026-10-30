@@ -6,7 +6,7 @@ let package = Package(
   platforms: [.macOS("26.0")],
   products: [.executable(name: "Twiddle", targets: ["Twiddle"])],
   targets: [
-    .target(name: "TwiddleCore"),
+    .target(name: "TwiddleCore", resources: [.embedInCode("Resources")]),
     .target(name: "TwiddleUI"),
     .executableTarget(name: "Twiddle", dependencies: ["TwiddleCore", "TwiddleUI"]),
     .testTarget(name: "TwiddleCoreTests", dependencies: ["TwiddleCore"]),

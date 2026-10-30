@@ -36,6 +36,29 @@ public struct TypingSession {
     self.mode = mode
   }
 
+  public init(text: String, caret: Int, mistakes: Set<Int>, mode: MistakeMode = .strict) {
+    self.init(text: text, mode: mode)
+    self.caret = min(max(0, caret), characters.count)
+    self.mistakes = mistakes.filter { characters.indices.contains($0) }
+    var indentation = true
+    for offset in 0..<self.caret {
+      let character = characters[offset]
+      // The saved format cannot distinguish typed indentation from skipped spaces.
+      let skipped = indentation && character == " "
+      if !skipped && (mode == .strict || !self.mistakes.contains(offset)) {
+        creditedOffsets.insert(offset)
+      }
+      if character == "\n" { indentation = true } else if character != " " { indentation = false }
+    }
+  }
+
+  public mutating func resumeAtWordStart() {
+    while caret > 0 && !characters[caret - 1].isWhitespace { caret -= 1 }
+    pending = nil
+    mistakes = mistakes.filter { $0 < caret }
+    creditedOffsets = creditedOffsets.filter { $0 < caret }
+  }
+
   public var expected: Character? { caret < characters.count ? characters[caret] : nil }
   public var needsExtension: Bool { characters.count - caret < 300 }
   public var netCorrectChars: Int { creditedOffsets.count }

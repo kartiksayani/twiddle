@@ -1,11 +1,21 @@
 import Foundation
 
 public struct StatsTracker {
-  public struct Counters: Equatable {
+  public struct Counters: Equatable, Codable, Sendable {
     public fileprivate(set) var netCorrectChars = 0
     public fileprivate(set) var presses = 0
     public fileprivate(set) var correctPresses = 0
     public fileprivate(set) var activeSeconds: TimeInterval = 0
+
+    public init(
+      netCorrectChars: Int = 0, presses: Int = 0, correctPresses: Int = 0,
+      activeSeconds: TimeInterval = 0
+    ) {
+      self.netCorrectChars = netCorrectChars
+      self.presses = presses
+      self.correctPresses = correctPresses
+      self.activeSeconds = activeSeconds
+    }
 
     public var wpm: Double {
       activeSeconds > 0 ? Double(netCorrectChars) * 12 / activeSeconds : 0
@@ -25,7 +35,7 @@ public struct StatsTracker {
     }
   }
 
-  public enum Mode {
+  public enum Mode: String, Codable, Sendable {
     case flow
     case sprint
   }
@@ -48,8 +58,17 @@ public struct StatsTracker {
   public private(set) var mode: Mode
   private var lastPress: TimeInterval?
 
-  public init(mode: Mode = .flow) {
+  public init(mode: Mode = .flow, today: Counters = Counters(), keyStats: KeyStats = KeyStats()) {
     self.mode = mode
+    self.today = today
+    self.keyStats = keyStats
+    self.keyStats.breakSequence()
+  }
+
+  public mutating func resetToday() {
+    today = Counters()
+    lastPress = nil
+    keyStats.breakSequence()
   }
 
   public func isPaused(at time: TimeInterval) -> Bool {
