@@ -7,6 +7,8 @@ import TwiddleUI
 private enum Fixture: String, CaseIterable {
   case waiting, fixed, resumed, paused, code, prose, weakKeys, weakFallback
   case sprintReady, sprintRunning, sprintResult, capsule
+  case hintsOff, hintsPlain, hintsCapital, hintsSymbol, progressData, progressEmpty, progressOne,
+    intro
 }
 
 struct SnapshotExport {
@@ -49,11 +51,51 @@ struct SnapshotExport {
               from: Data("{\"samples\":20,\"averageMs\":300,\"errorRate\":0.1}".utf8))
           }
         }
+        if [.hintsCapital].contains(fixture) {
+          state.resume["prose"] = Store.Resume(
+            session: TypingSession(
+              text:
+                "Two roads diverged in a wood, and I took the one less travelled by, and that has made all "
+                + String(repeating: "the difference ", count: 60)))
+        }
+        if fixture == .hintsSymbol {
+          state.resume["code"] = Store.Resume(
+            session: TypingSession(
+              text:
+                "if err := run(ctx); err != nil {\n    return fmt.Errorf(\"sync: %w\", err)\n}\n"
+                + String(repeating: "const value = await read();\n", count: 30)))
+        }
+        if fixture == .progressData || fixture == .progressOne {
+          state.today = .init(
+            date: store.today,
+            counters: .init(
+              netCorrectChars: 4180, presses: 4500, correctPresses: 4340,
+              activeSeconds: 660), bestWPM: 91)
+          let speeds =
+            fixture == .progressOne
+            ? [84]
+            : [71, 74, 69, 76, 73, 78, 75, 80, 72, 77, 79, 74, 81, 76, 78, 91, 77, 80, 76, 84]
+          state.runs = speeds.enumerated().map { index, speed in
+            Store.Run(
+              mode: .flow, source: .words,
+              startedAt: Date(timeIntervalSince1970: 432000 + Double(index) * 3600),
+              activeSeconds: 60, wpm: Double(speed), accuracy: 0.98, chars: speed * 5)
+          }
+          for (index, key) in ["q", "z", "[", "]", "-"].enumerated() {
+            let milliseconds = [312, 298, 341, 336, 287][index]
+            state.keys[key] = try JSONDecoder().decode(
+              KeyStats.Entry.self,
+              from: Data(
+                "{\"samples\":20,\"averageMs\":\(milliseconds),\"errorRate\":\(index < 2 ? 0.4 : 0.1)}"
+                  .utf8))
+          }
+        }
+        if fixture == .progressEmpty { state.today = .init(date: store.today) }
         try store.save(state)
         var time = 0.0
         let model = PracticeModel(
           store: store, random: SnapshotRandom(), now: { time })
-        model.summon()
+        if fixture == .intro { model.launch() } else { model.summon() }
         for _ in 0..<(correct - (fixture == .fixed ? 1 : 0)) {
           model.handle(.character(model.session.expected!))
         }
@@ -69,6 +111,28 @@ struct SnapshotExport {
         time = fixture == .paused ? 10 : fixture == .resumed ? 0 : 3
         model.tick()
         switch fixture {
+        case .hintsOff, .hintsPlain:
+          for _ in 0..<2 { model.handle(.character(model.session.expected!)) }
+          if fixture == .hintsPlain { model.handle(.toggleHints) }
+          #expect(model.hint?.key == "o")
+        case .hintsCapital:
+          model.handle(.source(.prose))
+          model.handle(.toggleHints)
+          #expect(model.hint?.label == "T")
+        case .hintsSymbol:
+          model.handle(.source(.code))
+          for _ in 0..<13 { model.handle(.character(model.session.expected!)) }
+          model.handle(.toggleHints)
+          #expect(model.hint?.label == "(")
+        case .progressData, .progressEmpty, .progressOne:
+          model.handle(.progress)
+          #expect(model.view == .progress)
+          #expect(
+            model.progress.points.count
+              == (fixture == .progressEmpty ? 0 : fixture == .progressOne ? 1 : 20))
+        case .intro:
+          #expect(model.view == .intro)
+
         case .code: model.handle(.source(.code))
         case .prose: model.handle(.source(.prose))
         case .weakKeys, .weakFallback: model.handle(.source(.weakKeys))
@@ -112,11 +176,14 @@ struct SnapshotExport {
         let image = try #require(renderer.cgImage)
         #expect(image.width == Int(Theme.panelSize.width * 2))
         let expectedHeight =
-          Theme.panelSize.height
+          model.panelHeight
           + (fixture == .capsule
             ? Theme.capsuleOffset + Theme.capsuleHeight : 0)
         #expect(image.height == Int(expectedHeight * 2))
-        if ![Fixture.sprintRunning, .sprintResult].contains(fixture) {
+        if ![
+          Fixture.sprintRunning, .sprintResult, .hintsOff, .hintsPlain, .hintsCapital, .hintsSymbol,
+          .progressData, .progressEmpty, .progressOne,
+        ].contains(fixture) {
           #expect(model.stats.today.wpm == 78)
           #expect(model.stats.today.accuracy == 0.964)
         }

@@ -39,6 +39,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
   func applicationDidFinishLaunching(_ notification: Notification) {
     do {
       try hotkey.start()
+      panel.launch()
     } catch {
       NSLog("Twiddle could not register Control-Option-Space: %@", String(describing: error))
       NSApp.terminate(nil)

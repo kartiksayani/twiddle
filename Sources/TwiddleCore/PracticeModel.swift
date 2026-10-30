@@ -7,7 +7,11 @@ public final class PracticeModel {
   public enum Command {
     case flow, sprint
     case source(ContentProvider.Source)
-    case freshText
+    case freshText, toggleHints, progress
+  }
+
+  public enum ViewState: Sendable {
+    case text, progress, intro
   }
 
   public enum SprintState: Sendable {
@@ -19,6 +23,18 @@ public final class PracticeModel {
     public let mistakes: Int
     public let slowestPair: String?
   }
+
+  public private(set) var view: ViewState = .text
+  public var hintsOn: Bool { state.hintsOn }
+  public var seenIntro: Bool { state.seenIntro }
+  public var showsHints: Bool {
+    hintsOn && view == .text && !(mode == .sprint && sprintState == .result)
+  }
+  public var panelHeight: Double {
+    PanelLayout.height(view: view, hints: showsHints)
+  }
+  public var hint: FingerMap.Resolved? { session.expected.flatMap(FingerMap.resolve) }
+  public var progress: ProgressData { ProgressData(state: state) }
 
   public private(set) var source: ContentProvider.Source = .words
   public var mode: StatsTracker.Mode { stats.mode }
@@ -83,8 +99,15 @@ public final class PracticeModel {
     for error in loaded.errors { log(error) }
   }
 
+  public func launch() {
+    guard !seenIntro, !isVisible else { return }
+    summon()
+    view = .intro
+  }
+
   public func summon() {
     guard !isVisible else { return }
+    view = .text
     resetDayIfNeeded()
     if mode == .sprint {
       readySprint()
@@ -100,6 +123,12 @@ public final class PracticeModel {
     let time = now()
     settleElapsedSprint(at: time)
     guard isVisible else { return }
+    if view == .intro { dismissIntro() }
+    if view == .progress {
+      view = .text
+      if case .backspace = input { return }
+      if case .deleteWord = input { return }
+    }
     if mode == .sprint {
       if sprintState == .result {
         if case .character("\n") = input { readySprint() }
@@ -126,10 +155,26 @@ public final class PracticeModel {
     let time = now()
     settleElapsedSprint(at: time)
     guard isVisible else { return }
+    if case .toggleHints = command {
+      updateStats(at: time)
+      state.hintsOn.toggle()
+      save()
+      return
+    }
+    if case .progress = command {
+      guard view != .intro, mode == .flow || sprintState == .ready else { return }
+      updateStats(at: time)
+      state.capture(stats.keyStats)
+      view = view == .progress ? .text : .progress
+      return
+    }
+    guard view != .intro else { return }
+    view = .text
     if case .flow = command, mode == .flow { return }
     if case .source(let source) = command, mode == .flow && source == self.source { return }
     updateStats(at: time)
     switch command {
+    case .toggleHints, .progress: break
     case .flow:
       endCurrentRun(at: time)
       stats.setMode(.flow, at: time)
@@ -206,7 +251,15 @@ public final class PracticeModel {
     isVisible = false
   }
 
+  private func dismissIntro() {
+    resetDayIfNeeded()
+    state.seenIntro = true
+    view = .text
+    save()
+  }
+
   private func finish() {
+    if view == .intro { dismissIntro() }
     let time = now()
     settleElapsedSprint(at: time)
     endCurrentRun(at: time)
