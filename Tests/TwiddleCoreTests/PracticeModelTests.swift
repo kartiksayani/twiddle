@@ -3,7 +3,7 @@ import Testing
 import TwiddleCore
 
 @MainActor
-private final class PracticeFixture {
+final class PracticeFixture {
   var time = 0.0
   var date = Date(timeIntervalSince1970: 1_790_000_000)
   var errors = 0
@@ -41,8 +41,13 @@ private final class PracticeFixture {
   }
 }
 
-private struct FixedRandom: RandomNumberGenerator {
-  mutating func next() -> UInt64 { 0xA123_4567_89AB_CDEF }
+struct FixedRandom: RandomNumberGenerator {
+  private var state: UInt64 = 0xA123_4567_89AB_CDEF
+
+  mutating func next() -> UInt64 {
+    state = state &* 6_364_136_223_846_793_005 &+ 1
+    return state
+  }
 }
 
 @MainActor
