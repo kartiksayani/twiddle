@@ -4,7 +4,7 @@ public struct TypingSession {
     case forgiving
   }
 
-  public enum Input {
+  public enum Input: Sendable {
     case character(Character)
     case backspace
     case deleteWord

@@ -1,6 +1,56 @@
 import SwiftUI
 
 public struct Theme {
+  public static let hintsHeight: CGFloat = 116
+  public static let hintsInset: CGFloat = 14
+  public static let hintsGap: CGFloat = 30
+  public static let keyGap: CGFloat = 3
+  public static let keyboardWidth: CGFloat = 287
+  public static let keyUnit: CGFloat = 17
+  public static let keyHeight: CGFloat = 15
+  public static let keyRadius: CGFloat = 3
+  public static let keySize: CGFloat = 8.5
+  public static let nextKeySize: CGFloat = 36
+  public static let nextKeyRadius: CGFloat = 7
+  public static let nextKeyFont: CGFloat = 17
+  public static let fingerSize: CGFloat = 13
+  public static let hintTextWidth: CGFloat = 165
+  public static let handWidth: CGFloat = 7
+  public static let handRadius: CGFloat = 3.5
+  public static let handGap: CGFloat = 9
+  public static let handHeight: CGFloat = 28
+  public static let handHeights: [CGFloat] = [15, 21, 24, 21, 11, 11, 21, 24, 21, 15]
+  public static let progressBodyHeight: CGFloat = 153
+  public static let progressTop: CGFloat = 18
+  public static let progressBottom: CGFloat = 22
+  public static let progressGap: CGFloat = 40
+  public static let progressColumnGap: CGFloat = 8
+  public static let progressStatGap: CGFloat = 10
+  public static let progressValueSize: CGFloat = 20
+  public static let progressValueWidth: CGFloat = 48
+  public static let chartWidth: CGFloat = 250
+  public static let chartHeight: CGFloat = 70
+  public static let chartLineWidth: CGFloat = 1.75
+  public static let chartBestRadius: CGFloat = 3
+  public static let chartLastRadius: CGFloat = 3.5
+  public static let chartDash: [CGFloat] = [2, 3]
+  public static let weakColumnWidth: CGFloat = 182
+  public static let weakKeyRowHeight: CGFloat = 48
+  public static let weakKeySize: CGFloat = 30
+  public static let weakKeyRadius: CGFloat = 6
+  public static let weakKeyFont: CGFloat = 15
+  public static let introTop: CGFloat = 8
+  public static let introGap: CGFloat = 10
+  public static let introFont: CGFloat = 19
+  public static let introLineHeight: CGFloat = 26
+  public static let introKeyGap: CGFloat = 3
+  public static let introKeyInset: CGFloat = 7
+  public static let introSpaceInset: CGFloat = 9
+  public static let introKeyHeight: CGFloat = 24
+  public static let introKeyRadius: CGFloat = 5
+  public static let introKeyFont: CGFloat = 14
+  public static let introEscapeInset: CGFloat = 5
+  public static let introFooterGap: CGFloat = 16
   public static let progressHeight: CGFloat = 2
   public static let resultTop: CGFloat = 10
   public static let resultGap: CGFloat = 34
@@ -62,6 +112,8 @@ public struct Theme {
   public static let summonDuration = 0.18
   public static let hideDuration = 0.12
 
+  public let key: Color
+  public let zone: Color
   public let hairStrong: Color
   public let hair: Color
   public let accentInk: Color
@@ -92,6 +144,8 @@ public struct Theme {
       dark
       ? Color(.sRGB, red: 0.699118, green: 0.587094, blue: 0.998841)
       : Color(.sRGB, red: 0.449172, green: 0.303086, blue: 0.746457)
+    zone = accent.opacity(dark ? 0.2 : 0.14)
+    key = (dark ? Color.white : Color.black).opacity(dark ? 0.07 : 0.06)
     error =
       dark
       ? Color(.sRGB, red: 0.992693, green: 0.451639, blue: 0.425769)

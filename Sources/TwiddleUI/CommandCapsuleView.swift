@@ -22,8 +22,8 @@ public struct CommandCapsuleView: View {
       item("⌘F", "Flow", selected: model.mode == .flow)
       item("⌘S", "Sprint", selected: model.mode == .sprint)
       separator
-      item("⌘/", "Hints")
-      item("⌘P", "Progress")
+      item("⌘/", "Hints", selected: model.hintsOn)
+      item("⌘P", "Progress", selected: model.view == .progress)
       item("⌘,", "Settings")
     }
     .fixedSize()

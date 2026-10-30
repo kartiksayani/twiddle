@@ -14,25 +14,47 @@ public struct PanelView: View {
   public var body: some View {
     let theme = Theme(scheme)
     VStack(spacing: 0) {
-      HeaderView(
-        counters: model.headerCounters, resumedWord: model.resumedWord,
-        paused: model.mode == .flow && model.isPaused, source: model.source.label,
-        modeLabel: model.mode == .flow ? "Flow" : "Sprint \(model.sprintLength) s",
-        note: model.contentNote, blank: model.mode == .sprint && model.sprintState == .ready,
-        clock: model.mode == .sprint
-          ? String(format: "%d:%02d", model.sprintRemaining / 60, model.sprintRemaining % 60) : nil,
-        progress: model.mode == .sprint && model.sprintState != .result
-          ? model.sprintElapsed / Double(model.sprintLength) : nil,
-        finished: model.mode == .sprint && model.sprintState == .result)
-      if let result = model.result, model.mode == .sprint {
-        ResultView(result: result, length: model.sprintLength)
+      if model.view == .text {
+        HeaderView(
+          counters: model.headerCounters, resumedWord: model.resumedWord,
+          paused: model.mode == .flow && model.isPaused, source: model.source.label,
+          modeLabel: model.mode == .flow ? "Flow" : "Sprint \(model.sprintLength) s",
+          note: model.contentNote, blank: model.mode == .sprint && model.sprintState == .ready,
+          clock: model.mode == .sprint
+            ? String(format: "%d:%02d", model.sprintRemaining / 60, model.sprintRemaining % 60)
+            : nil,
+          progress: model.mode == .sprint && model.sprintState != .result
+            ? model.sprintElapsed / Double(model.sprintLength) : nil,
+          finished: model.mode == .sprint && model.sprintState == .result)
+        if let result = model.result, model.mode == .sprint {
+          ResultView(result: result, length: model.sprintLength)
+        } else {
+          PracticeTextView(
+            session: model.session, characters: model.characters, lines: model.lines,
+            blinks: !snapshot && model.caretBlinks)
+        }
       } else {
-        PracticeTextView(
-          session: model.session, characters: model.characters, lines: model.lines,
-          blinks: !snapshot && model.caretBlinks)
+        HStack {
+          Text(model.view == .progress ? "Today" : "Twiddle")
+            .fontWeight(.medium).foregroundStyle(theme.accent)
+          Spacer()
+          Text(model.view == .progress ? "Type to go back" : "Change the hotkey in Settings, ⌘,")
+            .foregroundStyle(theme.typed)
+        }
+        .font(.system(size: Theme.labelSize))
+        .padding(.horizontal, Theme.inset)
+        .padding(.top, Theme.headerTop)
+        .frame(height: Theme.headerHeight)
+        .offset(y: Theme.headerInkOffset)
+        if model.view == .progress {
+          ProgressView(data: model.progress)
+        } else {
+          IntroView()
+        }
       }
+      if model.showsHints { HintsView(hint: model.hint) }
     }
-    .frame(width: Theme.panelSize.width, height: Theme.panelSize.height)
+    .frame(width: Theme.panelSize.width, height: model.panelHeight)
     .background(snapshot ? theme.solid : theme.surface)
     .clipShape(RoundedRectangle(cornerRadius: Theme.radius))
     .overlay(

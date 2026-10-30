@@ -76,11 +76,7 @@ final class PanelController: NSObject, NSWindowDelegate {
     material.material = .hudWindow
     material.blendingMode = .behindWindow
     material.state = .active
-    material.maskImage = NSImage(size: Theme.panelSize, flipped: false) { rect in
-      NSColor.black.setFill()
-      NSBezierPath(roundedRect: rect, xRadius: Theme.radius, yRadius: Theme.radius).fill()
-      return true
-    }
+    material.updateMask(size: Theme.panelSize)
     let hosting = NSHostingView(rootView: PanelView(model: model))
     hosting.frame = material.bounds
     hosting.autoresizingMask = [.width, .height]
@@ -89,7 +85,13 @@ final class PanelController: NSObject, NSWindowDelegate {
     panel.delegate = self
     panel.router = KeyRouter(
       model: model, hide: { [weak self] in self?.handle(.escape) },
-      capsuleChanged: { [weak self] visible in self?.showCapsule(visible) })
+      capsuleChanged: { [weak self] visible in self?.showCapsule(visible) },
+      layoutChanged: { [weak self] in self?.resize() })
+  }
+
+  func launch() {
+    model.launch()
+    if model.isVisible { handle(.hotkey) }
   }
 
   func handle(_ event: PanelPresence.Event) {
@@ -148,6 +150,25 @@ final class PanelController: NSObject, NSWindowDelegate {
     }
   }
 
+  private func resize() {
+    guard model.isVisible, panel.frame.height != model.panelHeight,
+      let screen = panel.screen ?? NSScreen.main
+    else { return }
+    let size = CGSize(width: Theme.panelSize.width, height: model.panelHeight)
+    let visible = screen.visibleFrame
+    let placement = PanelLayout.clamp(
+      .init(x: panel.frame.minX, y: panel.frame.minY, width: size.width, height: size.height),
+      to: .init(x: visible.minX, y: visible.minY, width: visible.width, height: visible.height))
+    let frame = NSRect(
+      x: placement.x, y: placement.y, width: placement.width, height: placement.height)
+    panel.setFrame(frame, display: true)
+    (panel.contentView as? NSVisualEffectView)?.updateMask(size: size)
+    if capsulePanel.isVisible {
+      capsulePanel.setFrameOrigin(
+        NSPoint(x: frame.midX - capsulePanel.frame.width / 2, y: frame.maxY + Theme.capsuleOffset))
+    }
+  }
+
   private func show() {
     motion += 1
     model.summon()
@@ -158,6 +179,7 @@ final class PanelController: NSObject, NSWindowDelegate {
         NSPoint(x: visible.midX - panel.frame.width / 2, y: visible.minY + Theme.bottomOffset)
       )
     }
+    resize()
     let destination = panel.frame
     panel.setFrameOrigin(NSPoint(x: destination.minX, y: destination.minY - Theme.summonRise))
     panel.alphaValue = 0
@@ -169,6 +191,7 @@ final class PanelController: NSObject, NSWindowDelegate {
       [weak self] _ in
       MainActor.assumeIsolated {
         self?.model.tick()
+        self?.resize()
         self?.panel.router?.tick()
       }
     }
@@ -178,6 +201,16 @@ final class PanelController: NSObject, NSWindowDelegate {
       context.timingFunction = CAMediaTimingFunction(name: .easeOut)
       panel.animator().setFrame(destination, display: true)
       panel.animator().alphaValue = 1
+    }
+  }
+}
+
+extension NSVisualEffectView {
+  fileprivate func updateMask(size: CGSize) {
+    maskImage = NSImage(size: size, flipped: false) { rect in
+      NSColor.black.setFill()
+      NSBezierPath(roundedRect: rect, xRadius: Theme.radius, yRadius: Theme.radius).fill()
+      return true
     }
   }
 }

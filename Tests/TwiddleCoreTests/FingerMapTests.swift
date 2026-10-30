@@ -6,6 +6,10 @@ struct FingerMapTests {
   func everyPrintableASCIICharacterResolves(ascii: UInt8) throws {
     let character = Character(String(UnicodeScalar(ascii)))
     let resolved = try #require(FingerMap.resolve(character))
+    #expect(FingerMap.rows.flatMap { $0 }.contains { $0.id == resolved.key })
+    if let shift = resolved.shift {
+      #expect(FingerMap.rows.flatMap { $0 }.contains { $0.id == shift.rawValue })
+    }
     #expect(resolved.label == (character == " " ? "␣" : character))
   }
 
@@ -64,6 +68,25 @@ struct FingerMapTests {
         .leftPinky: "a", .leftRing: "s", .leftMiddle: "d", .leftIndex: "f",
         .rightIndex: "j", .rightMiddle: "k", .rightRing: "l", .rightPinky: ";",
       ])
+  }
+
+  @Test func hintNamesAndSublabelsMatchBoard() {
+    let examples: [(Character, String, String)] = [
+      ("a", "Left pinky finger", "Home row key"),
+      ("w", "Left ring finger", "Reach from s"),
+      ("e", "Left middle finger", "Reach from d"),
+      ("T", "Left index finger", "Hold ⇧ with your right pinky"),
+      (" ", "Either thumb", "Space bar"),
+      ("y", "Right index finger", "Reach from j"),
+      ("i", "Right middle finger", "Reach from k"),
+      ("o", "Right ring finger", "Reach from l"),
+      ("(", "Right ring finger", "Hold ⇧ with your left pinky"),
+      ("\n", "Right pinky finger", "Return, reach from ;"),
+    ]
+    for (character, name, sublabel) in examples {
+      #expect(FingerMap.resolve(character)?.fingerName == name)
+      #expect(FingerMap.resolve(character)?.sublabel == sublabel)
+    }
   }
 
   @Test(arguments: Array("\t\r\u{7f}é🙂"))
