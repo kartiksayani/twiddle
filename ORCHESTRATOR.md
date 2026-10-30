@@ -7,17 +7,19 @@ How Twiddle gets built. This file is the only source for roles and process. Keep
 | Role | Who | Does |
 |---|---|---|
 | Maintainer | Claude Code, main session | Owns the spec, writes briefs, adjudicates reviews, checks visuals, pushes, merges. |
-| Implementer | Codex `gpt-6.1-sol`, high effort, `--write` | Builds one brief on its branch. Doesn't push or merge. |
+| Implementer | Codex `gpt-6.1-sol`, high effort, `--write` | Builds one brief on its branch and leaves the work uncommitted. |
 | Reviewer | Codex `gpt-6.1-sol`, high effort, fresh read-only thread | Reviews an exact commit. Never shares a thread with the implementer. |
 | Owner | Kartik | Approves the spec and any change to it. Runs what `CHECKLIST.md` lists. |
 
-Dispatch through the `codex:codex-rescue` agent with `--model gpt-6.1-sol --effort high --fresh`. Add `--write` for implementers only. Name agents `sol-high-<milestone>-<role>`.
+Run `codex-companion.mjs task --fresh --model gpt-6.1-sol --effort high --prompt-file <brief>` in a background Bash job. Add `--write` for implementers only. The `codex:codex-rescue` wrapper was killed with exit 137 on M0, so don't use it for long jobs.
+
+Codex's sandbox can build, test and view PNGs. It can't commit, launch the app or capture the screen, so the maintainer does those. Inside the sandbox, use `PATH=$PWD/scripts/sandbox:$PATH make check`.
 
 ## The milestone loop
 
 1. **Brief.** Write the goal, spec sections, settled decisions, owned paths, tests required, and what done means. Add the tables below if they apply.
 2. **Build.** Codex works on `m<N>-<name>`, runs `make check`, and reports real output.
-3. **Verify.** The maintainer runs `make check` again and reads the diff. UI milestones also get the visual check.
+3. **Verify.** The maintainer reads the diff, runs `make check` outside the sandbox, and commits. UI milestones also get the visual check.
 4. **Open a PR.** Its body states what changed and how each claim was verified: test, snapshot, real app, or not verified.
 5. **Review.** A fresh reviewer checks the exact head SHA against the spec.
 6. **Adjudicate.** The maintainer accepts or rejects each finding, with a reason. Accepted fixes go back to the implementer.
