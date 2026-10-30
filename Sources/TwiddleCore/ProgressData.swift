@@ -16,6 +16,8 @@ public struct ProgressData {
   public let averageY: Double
   public var oldestDate: Date? { runs.first?.startedAt }
   public var isEmpty: Bool { runs.isEmpty }
+  /// The chart spans days, so its best differs from today's `best`.
+  public var chartBest: Double { runs.map(\.wpm).max() ?? 0 }
 
   public init(state: Store.State) {
     minutes = state.today.activeSeconds / 60

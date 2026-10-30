@@ -42,7 +42,7 @@ public struct ProgressView: View {
       HStack {
         Text("WPM, last 20 runs")
         Spacer(minLength: 0)
-        Text("best \(data.best.formatted(.number.precision(.fractionLength(0))))")
+        Text("best \(data.chartBest.formatted(.number.precision(.fractionLength(0))))")
       }
       .font(.system(size: Theme.labelSize))
       Canvas { context, size in

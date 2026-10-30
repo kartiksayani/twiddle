@@ -3,6 +3,18 @@ import Testing
 import TwiddleCore
 
 struct ProgressDataTests {
+  @Test func chartBestComesFromPlottedRunsNotToday() {
+    var state = Store.State(date: "2026-10-31")
+    state.runs = [
+      Store.Run(
+        mode: .flow, source: .words, startedAt: Date(timeIntervalSince1970: 0),
+        activeSeconds: 60, wpm: 100, accuracy: 1, chars: 500)
+    ]
+    let data = ProgressData(state: state)
+    #expect(data.best == 0)
+    #expect(data.chartBest == 100)
+  }
+
   @Test func readsTodayAndSavedRankedKeysAndNewestTwentyRuns() throws {
     var state = Store.State(date: "2026-10-31")
     state.today = Store.Today(
