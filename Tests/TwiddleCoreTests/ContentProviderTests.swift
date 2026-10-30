@@ -23,6 +23,9 @@ struct ContentProviderTests {
       #expect(text.allSatisfy { FingerMap.resolve($0) != nil })
       #expect(!text.contains("\t"))
       #expect(text.hasSuffix("\n"))
+      for token in text.split(whereSeparator: \.isWhitespace) {
+        #expect(token.count <= 44)
+      }
       let entries = text.dropLast().split(separator: separator, omittingEmptySubsequences: false)
       #expect(count.contains(entries.count))
       #expect(Set(entries).count == entries.count)

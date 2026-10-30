@@ -33,6 +33,6 @@ final class KeyRouter {
       model.handle(.character("\n"))
       return
     }
-    for character in characters { model.handle(.character(character)) }
+    for character in characters where isTextInput(character) { model.handle(.character(character)) }
   }
 }

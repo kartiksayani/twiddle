@@ -66,11 +66,7 @@ public final class PracticeModel {
   public func handle(_ input: TypingSession.Input) {
     guard isVisible else { return }
     let time = now()
-    if let ended = stats.update(at: time) {
-      capture(ended, at: time)
-      save()
-    }
-    resetDayIfNeeded()
+    updateStats(at: time)
     let change = session.handle(input)
     resumedWord = nil
     noteUntil = nil
@@ -92,10 +88,7 @@ public final class PracticeModel {
       self.noteUntil = nil
     }
     isPaused = stats.isPaused(at: time)
-    if let ended = stats.update(at: time) {
-      capture(ended, at: time)
-      save()
-    }
+    updateStats(at: time)
   }
 
   public func hide() {
@@ -112,7 +105,15 @@ public final class PracticeModel {
   private func finish() {
     let time = now()
     if let ended = stats.endRun(at: time) { capture(ended, at: time) }
+    resetDayIfNeeded()
     save()
+  }
+
+  private func updateStats(at time: TimeInterval) {
+    let ended = stats.update(at: time)
+    if let ended { capture(ended, at: time) }
+    resetDayIfNeeded()
+    if ended != nil { save() }
   }
 
   private func capture(_ run: StatsTracker.Run, at time: TimeInterval) {

@@ -50,14 +50,34 @@ struct PracticeModelTests {
   @Test func freshSummon() throws {
     let f = PracticeFixture()
     defer { try! f.clean() }
+    #expect(!f.model.isVisible)
+    #expect(f.model.session.text.isEmpty)
     f.model.summon()
     #expect(f.model.isVisible)
     #expect(f.model.session.text.count >= 600)
     #expect(f.model.resumedWord == nil)
     #expect(f.model.caretBlinks)
-    let text = f.model.session.text
+  }
+
+  @Test func visibleAfterTypingThenSummonKeepsCaretAndToday() throws {
+    let f = PracticeFixture()
+    defer { try! f.clean() }
+    try f.seed(caret: 6)
     f.model.summon()
+    f.type(2)
+    let today = f.model.stats.today
+    let storedToday = f.model.state.today
+    let text = f.model.session.text
+    #expect(f.model.isVisible)
+    #expect(f.model.session.caret == 8)
+    #expect(today.presses == 2)
+    f.model.summon()
+    #expect(f.model.isVisible)
+    #expect(f.model.session.caret == 8)
+    #expect(f.model.stats.today == today)
+    #expect(f.model.state.today == storedToday)
     #expect(f.model.session.text == text)
+    #expect(f.model.resumedWord == nil)
   }
 
   @Test func savedMidWordSummon() throws {
@@ -330,6 +350,65 @@ struct PracticeModelTests {
     #expect(f.model.stats.keyStats.keys.count >= keys.count)
   }
 
+  @Test(arguments: [false, true])
+  func visibleDayChangeTickKeepsKeysAndRuns(expired: Bool) throws {
+    let f = PracticeFixture()
+    defer { try! f.clean() }
+    try f.seed(runs: 1, bestWPM: 300)
+    f.model.summon()
+    f.type(50)
+    let keys = f.model.stats.keyStats.keys
+    let pairs = f.model.stats.keyStats.pairs
+    let runs = f.model.state.runs
+    #expect(f.model.stats.today.presses == 50)
+    f.date = f.date.addingTimeInterval(86400)
+    if expired { f.time += 300 }
+    f.model.tick()
+    #expect(f.model.isVisible)
+    #expect(f.model.stats.today == StatsTracker.Counters())
+    #expect(f.model.state.today == Store.Today(date: f.store.today))
+    #expect(f.model.stats.keyStats.keys == keys)
+    #expect(f.model.stats.keyStats.pairs == pairs)
+    if expired {
+      #expect(f.model.stats.run == nil)
+      #expect(f.model.state.runs.count == 2)
+      #expect(f.model.state.runs.first?.chars == 50)
+      #expect(Array(f.model.state.runs.dropFirst()) == runs)
+      #expect(f.store.load().state == f.model.state)
+    } else {
+      #expect(f.model.stats.run?.counters.presses == 50)
+      #expect(f.model.state.runs == runs)
+    }
+    f.model.hide()
+    #expect(f.model.state.runs.count == 2)
+    #expect(f.store.load().state == f.model.state)
+  }
+
+  @Test(arguments: [false, true])
+  func dayChangeThenHideOrQuitKeepsKeysAndRuns(quitting: Bool) throws {
+    let f = PracticeFixture()
+    defer { try! f.clean() }
+    try f.seed(runs: 1, bestWPM: 300)
+    f.model.summon()
+    f.type(50)
+    let keys = f.model.stats.keyStats.keys
+    let pairs = f.model.stats.keyStats.pairs
+    let runs = f.model.state.runs
+    #expect(f.model.stats.today.presses == 50)
+    f.date = f.date.addingTimeInterval(86400)
+    if quitting { f.model.quit() } else { f.model.hide() }
+    #expect(!f.model.isVisible)
+    #expect(f.model.stats.run == nil)
+    #expect(f.model.stats.today == StatsTracker.Counters())
+    #expect(f.model.state.today == Store.Today(date: f.store.today))
+    #expect(f.model.stats.keyStats.keys == keys)
+    #expect(f.model.stats.keyStats.pairs == pairs)
+    #expect(f.model.state.runs.count == 2)
+    #expect(f.model.state.runs.first?.chars == 50)
+    #expect(Array(f.model.state.runs.dropFirst()) == runs)
+    #expect(f.store.load().state == f.model.state)
+  }
+
   @Test func failedSaveLogsAndRetriesWithoutLosingMemory() throws {
     let f = PracticeFixture()
     defer { try! f.clean() }
@@ -363,17 +442,55 @@ struct PracticeModelTests {
     #expect(f.store.load().state.runs.count == 1)
   }
 
-  @Test func hiddenInputAndTickAreIgnoredAndLoadErrorsLogged() throws {
+  @Test func hiddenInputIsIgnoredAndLoadErrorsLogged() throws {
     let f = PracticeFixture()
     defer { try! f.clean() }
     try FileManager.default.createDirectory(at: f.directory, withIntermediateDirectories: true)
     try Data("broken".utf8).write(to: f.directory.appendingPathComponent("state.json"))
+    let state = f.model.state
     f.model.handle(.character("a"))
-    f.model.tick()
+    #expect(!f.model.isVisible)
+    #expect(f.model.session.text.isEmpty)
+    #expect(f.model.state == state)
     #expect(f.errors == 1)
     #expect(f.model.stats.today.presses == 0)
     f.model.quit()
     #expect(f.store.load().state.resume.isEmpty)
+  }
+
+  @Test func hiddenAfterHideThenTickKeepsStateAndSavedFile() throws {
+    let f = PracticeFixture()
+    defer { try! f.clean() }
+    try f.seed(caret: 6)
+    f.model.summon()
+    f.type(2)
+    f.model.hide()
+    let state = f.model.state
+    let today = f.model.stats.today
+    let keys = f.model.stats.keyStats.keys
+    let pairs = f.model.stats.keyStats.pairs
+    let text = f.model.session.text
+    let caret = f.model.session.caret
+    let saved = try Data(contentsOf: f.directory.appendingPathComponent("state.json"))
+    #expect(!f.model.isVisible)
+    #expect(caret == 8)
+    #expect(today.presses == 2)
+    f.date = f.date.addingTimeInterval(86400)
+    f.time += 300
+    f.model.tick()
+    #expect(!f.model.isVisible)
+    #expect(!f.model.isPaused)
+    #expect(f.model.stats.run == nil)
+    #expect(f.model.state == state)
+    #expect(f.model.stats.today == today)
+    #expect(f.model.stats.keyStats.keys == keys)
+    #expect(f.model.stats.keyStats.pairs == pairs)
+    #expect(f.model.session.text == text)
+    #expect(f.model.session.caret == caret)
+    #expect(f.model.session.pending == nil)
+    #expect(f.model.session.mistakes.isEmpty)
+    #expect(f.model.resumedWord == nil)
+    #expect(try Data(contentsOf: f.directory.appendingPathComponent("state.json")) == saved)
   }
 
   @Test func forgivingValueIsAppliedOnSummon() throws {
