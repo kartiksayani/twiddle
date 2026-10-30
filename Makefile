@@ -1,4 +1,4 @@
-.PHONY: setup check lint build test coverage docs snapshots app install
+.PHONY: setup check lint build test coverage docs snapshots screenshots app install
 
 setup:
 	git config core.hooksPath .githooks
@@ -22,6 +22,9 @@ coverage:
 
 snapshots:
 	TWIDDLE_SNAPSHOT_DIR=$(CURDIR)/.build/snapshots swift test --filter SnapshotExport
+
+screenshots: snapshots
+	TWIDDLE_SCREENSHOT_DIR=$(CURDIR)/docs/screenshots swift test --filter ReadmeScreenshots
 
 app:
 	scripts/build-app.sh
