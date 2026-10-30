@@ -12,12 +12,12 @@ struct TextLayoutTests {
 
   @Test func wrapsAtWordBoundaryAndRetainsTrailingSpace() {
     let text = String(repeating: "a", count: 40) + " " + "word next"
-    #expect(TextLayout.layout(text) == [0..<46, 46..<50])
+    #expect(TextLayout.layout(text) == [0..<41, 41..<50])
   }
 
-  @Test func fortySixColumnsExcludeTrailingDelimiterAsInPrototype() {
-    let text = String(repeating: "a", count: 44) + " b c"
-    #expect(TextLayout.layout(text) == [0..<47, 47..<48])
+  @Test func maxLengthExcludesTrailingDelimiterAsInPrototype() {
+    let text = String(repeating: "a", count: 42) + " b c"
+    #expect(TextLayout.layout(text) == [0..<45, 45..<46])
   }
 
   @Test func oversizedWordIsNeverSplitAsInPrototype() {

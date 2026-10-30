@@ -26,7 +26,7 @@ Sources of truth:
 Package.swift
 Sources/TwiddleCore/       Foundation only. No AppKit, no SwiftUI.
   TypingSession.swift      caret, pending mistake, mistake marks; strict and forgiving
-  TextLayout.swift         wraps text into lines of at most 46 characters
+  TextLayout.swift         wraps text into lines of at most 44 characters
   ContentProvider.swift    endless text per source
   StatsTracker.swift       active time, WPM, accuracy, run boundaries
   KeyStats.swift           per-key and per-pair latency and errors

@@ -67,7 +67,6 @@ public struct StatsTracker {
 
   public mutating func resetToday() {
     today = Counters()
-    lastPress = nil
     keyStats.breakSequence()
   }
 

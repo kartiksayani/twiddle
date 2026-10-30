@@ -2,25 +2,22 @@
 
 The current state only. Replace this page at each checkpoint. Keep it under 40 lines.
 
-**Updated:** 2026-10-30
-**Main:** harness only, no app code yet
-**Open PRs:** M0, `m0-scaffold`
-**Active:** M0 delta review and CI
+**Updated:** 2026-10-31
+**Main:** M0, M1 and M2 merged
+**Open PRs:** M3, `m3-flow-panel`
+**Active:** M3 review
 **Unpushed work:** none
 
-## M0 evidence
+## M3 evidence
 
-Verified in the running app, outside the sandbox, with real key and mouse events:
-- `⌃⌥Space` shows the panel at 720 × 136, centred, on the screen under the pointer.
-- The frontmost app doesn't change on show, after Esc, or over a full-screen app.
-- On a second Space and over a full-screen app, the panel shows with no Space switch.
-- Keys go to the panel without activating Twiddle, and Esc hides it.
-- A click on another window hides the panel, and focus stays with that window.
+Verified in the running app with real key events: keys reach the panel and not the app behind it, Esc and `⌘Q` save, resume returns to the word start, and state survives a relaunch.
+
+Not verified: the live window material. The maintainer's shell has no Screen Recording permission, so `CHECKLIST.md` will carry it for the owner.
 
 ## Next steps
 
-1. Merge M0 after review and green CI, then add the `main` ruleset.
-2. Build M1.
+1. Merge M3 after review and green CI.
+2. Build M4 to M7.
 
 ## Blockers
 

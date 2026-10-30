@@ -1,4 +1,5 @@
 import AppKit
+import TwiddleCore
 
 @main
 @MainActor
@@ -16,9 +17,23 @@ struct TwiddleApp {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
-  private let panel = PanelController()
+  private let panel: PanelController
   private lazy var hotkey = HotkeyCenter { [weak self] in
     self?.panel.handle(.hotkey)
+  }
+
+  override init() {
+    let directory = URL.applicationSupportDirectory.appendingPathComponent(
+      "Twiddle", isDirectory: true)
+    let store = Store(directory: directory, currentDate: { Date() })
+    panel = PanelController(
+      model: PracticeModel(store: store, random: SystemRandomNumberGenerator()))
+    super.init()
+  }
+
+  func applicationWillTerminate(_ notification: Notification) {
+    panel.quit()
+    hotkey.stop()
   }
 
   func applicationDidFinishLaunching(_ notification: Notification) {

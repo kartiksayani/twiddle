@@ -1,4 +1,7 @@
 public enum TextLayout {
+  /// 45 SF Mono cells fit the 668 pt text column; the last holds a trailing space or line break.
+  static let maxLineLength = 44
+
   /// Offset ranges retain spaces and newlines, exactly as the panel prototype does.
   public static func layout(_ text: String) -> [Range<Int>] {
     let characters = Array(text)
@@ -14,7 +17,7 @@ public enum TextLayout {
         let wordEnd =
           characters[wordStart..<hardEnd].firstIndex(of: " ").map { $0 + 1 }
           ?? hardEnd
-        if wordEnd - lineStart - 1 > 46 && wordStart > lineStart {
+        if wordEnd - lineStart - 1 > maxLineLength && wordStart > lineStart {
           lines.append(lineStart..<wordStart)
           lineStart = wordStart
         }
