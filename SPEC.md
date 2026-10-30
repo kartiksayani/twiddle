@@ -188,6 +188,46 @@ Launch at login uses `SMAppService.mainApp`. If registration fails, show the fai
 
 M0 tests the riskiest assumption first. If the panel can't keep focus behaviour on a real Space or full-screen app, stop there and fix it before anything else is built.
 
+## v1.1
+
+Approved by Kartik on 2026-10-31. Where this section differs from the sections above, it wins.
+
+| # | Result | Gate |
+|---|---|---|
+| M8 | The wait is over: `twiddle://done` and the Finished pill | Interaction table passes in tests. `open -g twiddle://done` leaves the frontmost app unchanged. |
+| M9 | Symbols, code packs, paste to practise, two-row capsule | Corpus tests pass. Pasted text never reaches `state.json`. |
+| M10 | Slowest pairs, rhythm, symbol stalls, ghost sprint | Stats boundaries are tested. A `state.json` from v1 still loads. |
+| M11 | Demo GIF, README, checklist, version 0.2.0 | `make screenshots` regenerates the GIF deterministically. |
+
+### The wait is over
+
+- `CFBundleURLTypes` registers the `twiddle` scheme. Only the exact URL `twiddle://done` acts. Any path, query, fragment or other host is ignored, and no URL text is ever displayed or stored.
+- It shows a `Finished` pill in the capsule's slot above the panel for 10 s. It never summons the panel, takes focus or interrupts typing.
+- It's documented for `open -g twiddle://done`, so the signal doesn't activate anything.
+
+### Content
+
+- **Symbols** is a new source on `⌘5`: numbers and symbols, from `symbols.txt`, written for the project. It can be a default source.
+- **Code packs:** snippets split into per-language files: Go, Python, TypeScript, SQL and Shell, the last covering `git`, `kubectl` and `docker`. `⌘2` selects Code, and pressing it while on Code cycles All → Go → Python → TypeScript → SQL → Shell → All with fresh text. The header reads `Code · Go`. `codePack` persists.
+- **Paste to practise:** `⌘V` reads the clipboard once, only on that keypress, and practises that text on a loop under a `Pasted` source.
+  - Normalize to the corpus rules: curly quotes and dashes become ASCII, tabs become four spaces, other characters go, blank lines collapse. Tokens over 44 characters are hard-split with a space, so they can't break `TextLayout`.
+  - Under 20 characters after normalizing leaves the current text alone and shows the note `Nothing to practise in the clipboard`. Input is capped at 5,000 characters.
+  - Pasted text is never written to disk, because a clipboard can hold secrets. It survives hide and summon in memory, and a relaunch returns to the default source. Key stats and run totals still count.
+  - `Pasted` can't be a default source.
+- The capsule grows to two rows: sources (`⌘1`–`⌘5`, `⌘V`), then Flow, Sprint, Hints, Progress, Settings.
+
+### Stats
+
+- **Slowest pairs:** Progress shows the five slowest pairs with at least 10 samples. The sprint card's slowest pair keeps its 2-sample rule.
+- **Weak keys:** ranking also rewards words containing those pairs, at two points per occurrence.
+- **Rhythm:** `1 − stddev ÷ mean` of eligible latency gaps, clamped to 0–1 and shown as a percentage. It needs at least 20 gaps, otherwise `–`. It's kept per run and for today, and shown in Progress and on the sprint result.
+- **Symbol stalls:** replaces Progress's `average ms per key` caption with, for example, `symbols 2.4× slower than letters`, using sample-weighted key averages. It needs at least 20 samples on each side, otherwise the old caption stays.
+- **Ghost sprint:** a faint caret advances at your best WPM for this sprint length, at constant pace, while a sprint runs. It's hidden until a best exists and when it's off the visible lines. Bests persist per length, seeded from saved runs. Beating one shows `New best` on the result. There's no setting for it.
+
+### Later
+
+Notarized download and Homebrew cask. On-device drills, only if a prototype looks and feels good, and it needs Apple Intelligence turned on.
+
 ## Out of v1
 
-Lessons, goals and streaks, accounts or sync, sounds, custom themes, importing text, non-QWERTY finger maps, App Store, notarization, auto-update.
+Lessons, goals and streaks, accounts or sync, sounds, custom themes, importing text files, non-QWERTY finger maps, App Store, auto-update.

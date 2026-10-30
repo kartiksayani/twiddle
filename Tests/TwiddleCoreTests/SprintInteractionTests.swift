@@ -592,7 +592,7 @@ struct SprintInteractionTests {
     f.model.handle(.sprint)
     f.model.quit()
     let saved = f.store.load().state
-    #expect(saved.resume.count == 4)
+    #expect(saved.resume.count == ContentProvider.Source.allCases.count)
     let relaunched = PracticeModel(store: f.store, random: FixedRandom(), now: { f.time })
     relaunched.summon()
     #expect(relaunched.mode == .flow)

@@ -1,0 +1,61 @@
+def square(value: int) -> int:
+    return value * value
+
+names = ["ash", "birch", "cedar"]
+
+for index, name in enumerate(names):
+    print(index, name)
+
+counts = {"red": 3, "blue": 7}
+
+value = counts.get("green", 0)
+
+if not names:
+    raise ValueError("empty names")
+
+doubled = [value * 2 for value in range(5)]
+
+positive = [value for value in doubled if value > 0]
+
+total = sum(positive)
+
+caption = f"Total: {total}"
+
+point = (12, 24)
+
+x, y = point
+
+unique = set(["red", "red", "blue"])
+
+ordered = sorted(counts.items())
+
+with open("notes.txt", encoding="utf-8") as file:
+    lines = file.read().splitlines()
+
+while total > 0:
+    total //= 2
+
+def greeting(name: str) -> str:
+    return "Hello, " + name
+
+path = "/".join(["home", "practice"])
+
+first, *rest = names
+
+limited = names[:2]
+
+ready = all(value >= 0 for value in doubled)
+
+for key, value in counts.items():
+    print(f"{key}: {value}")
+
+try:
+    count = int("42")
+except ValueError:
+    count = 0
+
+class Counter:
+    def __init__(self):
+        self.value = 0
+
+message = "  ready  ".strip().upper()

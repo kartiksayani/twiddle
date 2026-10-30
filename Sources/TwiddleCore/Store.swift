@@ -91,6 +91,7 @@ public struct Store {
     public var hintsOn = false
     public var seenIntro = false
     public var lastSprintLength = 30
+    public var codePack: CodePack?
 
     public init(date: String) {
       today = Today(date: date)

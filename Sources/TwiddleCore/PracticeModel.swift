@@ -37,6 +37,10 @@ public final class PracticeModel {
   public var progress: ProgressData { ProgressData(state: state) }
 
   public private(set) var source: ContentProvider.Source = .words
+  public var codePack: CodePack { state.codePack ?? .all }
+  public var sourceLabel: String {
+    source == .code && codePack != .all ? "Code · \(codePack.label)" : source.label
+  }
   public var mode: StatsTracker.Mode { stats.mode }
   public private(set) var sprintState: SprintState = .ready
   public private(set) var result: SprintResult?
@@ -71,7 +75,7 @@ public final class PracticeModel {
   @ObservationIgnored private let now: () -> TimeInterval
   @ObservationIgnored private let date: () -> Date
   @ObservationIgnored private let content:
-    (ContentProvider.Source, KeyStats) -> ContentProvider.Content
+    (ContentProvider.Source, CodePack, KeyStats) -> ContentProvider.Content
   @ObservationIgnored private let log: (any Error) -> Void
   @ObservationIgnored private var mistakes: TypingSession.MistakeMode
   private let settings: Settings?
@@ -98,7 +102,7 @@ public final class PracticeModel {
     self.settings = settings
     var random = random
     let provider = ContentProvider()
-    content = { provider.content(for: $0, keyStats: $1, using: &random) }
+    content = { provider.content(for: $0, keyStats: $2, codePack: $1, using: &random) }
     let loaded = store.load()
     state = loaded.state
     stats = StatsTracker(today: loaded.state.today.counters, keyStats: loaded.state.keyStats)
@@ -159,7 +163,7 @@ public final class PracticeModel {
     }
     syncToday()
     if session.needsExtension {
-      session.append(content(source, stats.keyStats).text)
+      session.append(content(source, codePack, stats.keyStats).text)
       cacheLayout()
     }
   }
@@ -181,8 +185,12 @@ public final class PracticeModel {
     }
     guard view != .intro else { return }
     view = .text
+    let cyclesCode: Bool
+    if case .source(.code) = command { cyclesCode = source == .code } else { cyclesCode = false }
     if case .flow = command, mode == .flow { return }
-    if case .source(let source) = command, mode == .flow && source == self.source { return }
+    if case .source(let source) = command, mode == .flow && source == self.source && !cyclesCode {
+      return
+    }
     updateStats(at: time)
     switch command {
     case .toggleHints, .progress: break
@@ -201,6 +209,17 @@ public final class PracticeModel {
       }
       readySprint()
     case .source(let source):
+      if cyclesCode {
+        endCurrentRun(at: time)
+        state.codePack = codePack.next
+        flowSessions[.code] = nil
+        flowNotes[.code] = nil
+        state.resume["code"] = nil
+        if mode == .flow { session = newSession() } else { readySprint() }
+        flowSessions[.code] = session
+        state.resume["code"] = Store.Resume(session: session)
+        break
+      }
       if mode == .flow {
         rememberFlow()
         endCurrentRun(at: time)
@@ -371,7 +390,7 @@ public final class PracticeModel {
   }
 
   private func newSession() -> TypingSession {
-    let next = content(source, stats.keyStats)
+    let next = content(source, codePack, stats.keyStats)
     contentNote = next.note
     return TypingSession(text: next.text, mode: mistakes)
   }
@@ -406,7 +425,7 @@ public final class PracticeModel {
       session = newSession()
       clearResumeNote()
     }
-    if session.needsExtension { session.append(content(source, stats.keyStats).text) }
+    if session.needsExtension { session.append(content(source, codePack, stats.keyStats).text) }
   }
 
   private func readySprint() {

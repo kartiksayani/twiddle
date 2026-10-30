@@ -1,0 +1,40 @@
+port: 8080
+a[i] += 2;
+~/src/*.go
+127.0.0.1:3000
+count = 42
+ratio: 3.14
+price: $19.95
+2026-10-31
+09:45:30
+50% + 25% = 75%
+(12 + 8) / 4
+x >= 10 && x <= 99
+ready || retry
+!done && count != 0
+flags |= 0x04
+mask & 0xff
+bits << 2
+[0, 1, 2, 3]
+{a: 1, b: 2}
+<(value)>
+items[2:5]
+map["key"] = 7
+name?.length ?? 0
+value === 0
+score -= 3;
+path = "./data"
+/usr/local/bin
+../notes/draft.txt
+./logs/run-01.log
+src/**/test_*.py
+file-{01,02}.txt
+user@host:~/work
+KEY=value
+--limit=25
+?q=code&page=2
+#tag + @name
+left -> right
+a::b::c
+~0 ^ 0b1010
+sum(a, b);

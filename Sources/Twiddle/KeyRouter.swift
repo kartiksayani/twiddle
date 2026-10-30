@@ -52,6 +52,7 @@ final class KeyRouter {
       case "2": model.handle(.source(.code))
       case "3": model.handle(.source(.prose))
       case "4": model.handle(.source(.weakKeys))
+      case "5": model.handle(.source(.symbols))
       case "f": model.handle(.flow)
       case "s": model.handle(.sprint)
       case "/": model.handle(.toggleHints)

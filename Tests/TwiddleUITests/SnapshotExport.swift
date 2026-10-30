@@ -5,7 +5,7 @@ import TwiddleCore
 import TwiddleUI
 
 private enum Fixture: String, CaseIterable {
-  case waiting, fixed, resumed, paused, code, prose, weakKeys, weakFallback
+  case waiting, fixed, resumed, paused, code, codeGo, symbols, prose, weakKeys, weakFallback
   case sprintReady, sprintRunning, sprintResult, capsule
   case hintsOff, hintsPlain, hintsCapital, hintsSymbol, progressData, progressEmpty, progressOne,
     intro
@@ -38,6 +38,16 @@ struct SnapshotExport {
             text: "if err := run(ctx); err != nil {\n    return fmt.Errorf(\"sync: %w\", err)\n}\n"
               + String(repeating: "const value = await read();\n", count: 30), caret: 19,
             mistakes: []))
+        if fixture == .codeGo {
+          state.codePack = .go
+          state.resume["code"] = Store.Resume(
+            session: TypingSession(
+              text: String(
+                repeating: "if err := run(ctx); err != nil {\n    return err\n}\n", count: 30)))
+        }
+        state.resume["symbols"] = Store.Resume(
+          session: TypingSession(
+            text: String(repeating: "port: 8080\na[i] += 2;\n~/src/*.go\n", count: 30)))
         state.resume["prose"] = Store.Resume(
           session: TypingSession(
             text:
@@ -134,6 +144,14 @@ struct SnapshotExport {
           #expect(model.view == .intro)
 
         case .code: model.handle(.source(.code))
+        case .codeGo:
+          model.handle(.source(.code))
+          #expect(model.codePack == .go)
+          #expect(model.sourceLabel == "Code · Go")
+        case .symbols:
+          model.handle(.source(.symbols))
+          #expect(model.source == .symbols)
+          #expect(model.sourceLabel == "Symbols")
         case .prose: model.handle(.source(.prose))
         case .weakKeys, .weakFallback: model.handle(.source(.weakKeys))
         case .sprintReady, .sprintRunning, .sprintResult:

@@ -1,6 +1,6 @@
 public struct ContentProvider {
   public enum Source: String, Codable, CaseIterable, Sendable {
-    case words, code, prose, weakKeys
+    case words, code, prose, weakKeys, symbols
 
     public var label: String {
       switch self {
@@ -8,6 +8,7 @@ public struct ContentProvider {
       case .code: "Code"
       case .prose: "Prose"
       case .weakKeys: "Weak keys"
+      case .symbols: "Symbols"
       }
     }
   }
@@ -20,15 +21,31 @@ public struct ContentProvider {
 
   static let insufficientDataNote = "Not enough data yet"
   static let words = lines(PackageResources.words_txt)
-  static let code = String(decoding: PackageResources.code_txt, as: UTF8.self)
-    .dropLast().split(separator: "\n\n").map(String.init)
+  private static let packs: [CodePack: [String]] = [
+    .go: parseSnippets(PackageResources.code_go_txt),
+    .python: parseSnippets(PackageResources.code_python_txt),
+    .typescript: parseSnippets(PackageResources.code_typescript_txt),
+    .sql: parseSnippets(PackageResources.code_sql_txt),
+    .shell: parseSnippets(PackageResources.code_shell_txt),
+  ]
+  static let code = CodePack.allCases.flatMap { packs[$0, default: []] }
+  static let symbols = lines(PackageResources.symbols_txt)
   static let prose = lines(PackageResources.prose_txt)
   static let drills = lines(PackageResources.drills_txt)
 
   public init() {}
 
+  static func snippets(for pack: CodePack) -> [String] {
+    pack == .all ? code : packs[pack, default: []]
+  }
+
+  private static func parseSnippets(_ bytes: [UInt8]) -> [String] {
+    String(decoding: bytes, as: UTF8.self).dropLast().split(separator: "\n\n").map(String.init)
+  }
+
   public func content<R: RandomNumberGenerator>(
-    for source: Source, keyStats: KeyStats = KeyStats(), using random: inout R
+    for source: Source, keyStats: KeyStats = KeyStats(), codePack: CodePack = .all,
+    using random: inout R
   ) -> Content {
     let weakKeys = Set(keyStats.weakestKeys.map(\.key))
     let fellBack = source == .weakKeys && weakKeys.count < 5
@@ -40,7 +57,10 @@ public struct ContentProvider {
       candidates = Self.words
       separator = " "
     case .code:
-      candidates = Self.code
+      candidates = Self.snippets(for: codePack)
+      separator = "\n"
+    case .symbols:
+      candidates = Self.symbols
       separator = "\n"
     case .prose:
       candidates = Self.prose.map { String($0.split(separator: "|", maxSplits: 3)[3]) }

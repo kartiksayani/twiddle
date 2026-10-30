@@ -14,7 +14,12 @@ struct ContentProviderTests {
   @Test func corporaMeetTheGate() throws {
     let corpora = [
       (String(decoding: PackageResources.words_txt, as: UTF8.self), 900...1100, "\n"),
-      (String(decoding: PackageResources.code_txt, as: UTF8.self), 54...66, "\n\n"),
+      (String(decoding: PackageResources.code_go_txt, as: UTF8.self), 25...Int.max, "\n\n"),
+      (String(decoding: PackageResources.code_python_txt, as: UTF8.self), 25...Int.max, "\n\n"),
+      (String(decoding: PackageResources.code_typescript_txt, as: UTF8.self), 25...Int.max, "\n\n"),
+      (String(decoding: PackageResources.code_sql_txt, as: UTF8.self), 25...Int.max, "\n\n"),
+      (String(decoding: PackageResources.code_shell_txt, as: UTF8.self), 25...Int.max, "\n\n"),
+      (String(decoding: PackageResources.symbols_txt, as: UTF8.self), 36...44, "\n"),
       (String(decoding: PackageResources.prose_txt, as: UTF8.self), 36...44, "\n"),
       (String(decoding: PackageResources.drills_txt, as: UTF8.self), 10...40, "\n"),
     ]
@@ -110,6 +115,48 @@ struct ContentProviderTests {
         let entry = try #require(candidates.first { remaining.hasPrefix($0 + separator) })
         remaining.removeFirst(entry.count + separator.count)
       }
+    }
+  }
+
+  @Test(arguments: CodePack.allCases)
+  func packsServeOnlyTheirSnippetsWithRepeatableRandomness(pack: CodePack) throws {
+    var random = SeededRandom(state: 42)
+    var same = SeededRandom(state: 42)
+    var other = SeededRandom(state: 19)
+    let provider = ContentProvider()
+    let content = provider.content(for: .code, codePack: pack, using: &random)
+    #expect(content == provider.content(for: .code, codePack: pack, using: &same))
+    #expect(content != provider.content(for: .code, codePack: pack, using: &other))
+    #expect(content.text.count >= 600)
+    #expect(content.note == nil)
+    let snippets = ContentProvider.snippets(for: pack)
+    var remaining = content.text
+    while !remaining.isEmpty {
+      let entry = try #require(snippets.first { remaining.hasPrefix($0 + "\n") })
+      remaining.removeFirst(entry.count + 1)
+    }
+  }
+
+  @Test func allContainsEveryPackAndShellCoversItsTools() {
+    let packs = CodePack.allCases.filter { $0 != .all }
+    #expect(ContentProvider.code == packs.flatMap { ContentProvider.snippets(for: $0) })
+    #expect(Set(ContentProvider.code).count == ContentProvider.code.count)
+    let shell = ContentProvider.snippets(for: .shell)
+    for command in ["git ", "kubectl ", "docker "] {
+      #expect(shell.contains { $0.hasPrefix(command) })
+    }
+  }
+
+  @Test func symbolsServeTheirLinesAndLabel() throws {
+    var random = SeededRandom(state: 42)
+    let content = ContentProvider().content(for: .symbols, using: &random)
+    #expect(ContentProvider.Source.symbols.label == "Symbols")
+    #expect(!content.fellBack)
+    #expect(ContentProvider.symbols.contains("port: 8080"))
+    #expect(ContentProvider.symbols.contains("a[i] += 2;"))
+    #expect(ContentProvider.symbols.contains("~/src/*.go"))
+    for line in content.text.split(separator: "\n") {
+      #expect(ContentProvider.symbols.contains(String(line)))
     }
   }
 
