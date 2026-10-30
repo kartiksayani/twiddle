@@ -1,6 +1,46 @@
 import SwiftUI
 
 public struct Theme {
+  public static let settingsSize = CGSize(width: 500, height: 468)
+  public static let settingsTitleHeight: CGFloat = 40
+  public static let settingsTop: CGFloat = 6
+  public static let settingsBottom: CGFloat = 22
+  public static let settingsInset: CGFloat = 20
+  public static let settingsGroupGap: CGFloat = 16
+  public static let settingsRadius: CGFloat = 9
+  public static let settingsRowHeight: CGFloat = 44
+  public static let settingsDetailHeight: CGFloat = 56
+  public static let settingsRowInset: CGFloat = 12
+  public static let settingsFont: CGFloat = 13
+  public static let settingsControlFont: CGFloat = 12
+  public static let settingsHelpFont: CGFloat = 11
+  public static let settingsHelpGap: CGFloat = 2
+  public static let settingsMessageHeight: CGFloat = 20
+  public static let settingsCompactGap: CGFloat = 8
+  public static let settingsCompactBottom: CGFloat = 18
+  public static let settingsControlHeight: CGFloat = 24
+  public static let settingsControlRadius: CGFloat = 6
+  public static let settingsControlInset: CGFloat = 10
+  public static let settingsSegmentInset: CGFloat = 2
+  public static let settingsSegmentInsetX: CGFloat = 14
+  public static let settingsThemeSegmentInset: CGFloat = 12
+  public static let settingsMenuGap: CGFloat = 18
+  public static let settingsMenuArrowSize: CGFloat = 9
+  public static let settingsHotkeyWidth: CGFloat = 120
+  public static let settingsRecordingWidth: CGFloat = 150
+  public static let settingsToggleWidth: CGFloat = 32
+  public static let settingsToggleHeight: CGFloat = 18
+  public static let settingsToggleKnob: CGFloat = 14
+  public static let settingsClearSize: CGFloat = 14
+  public static let settingsFocusWidth: CGFloat = 3
+  public static let settingsFocusOpacity: Double = 0.5
+  public static let settingsGroupOpacity: Double = 0.04
+  public static let settingsSelectedOpacity: Double = 0.2
+  public static let statusIconSize = CGSize(width: 18, height: 16)
+  public static let statusIconRect = CGRect(x: 1.75, y: 2.75, width: 14.5, height: 10.5)
+  public static let statusIconStroke: CGFloat = 1.5
+  public static let statusIconRadius: CGFloat = 3.5
+  public static let statusCaretRect = CGRect(x: 5.5, y: 5.5, width: 1.5, height: 5)
   public static let hintsHeight: CGFloat = 116
   public static let hintsInset: CGFloat = 14
   public static let hintsGap: CGFloat = 30
@@ -127,9 +167,21 @@ public struct Theme {
   public let error: Color
   public let cap: Color
   public let edge: Color
+  public let settingsBackground: Color
+  public let settingsGroup: Color
+  public let settingsSelection: Color
+  public let toggleOnInk: Color
+  public let toggleOffInk: Color
+  public let settingsAccent: Color
 
   public init(_ scheme: ColorScheme) {
     let dark = scheme == .dark
+    settingsBackground = Self.rgb(dark ? 0x232326 : 0xF6F6F8)
+    settingsGroup = (dark ? Color.white : Color.black).opacity(Self.settingsGroupOpacity)
+    settingsSelection = Color.white.opacity(dark ? Self.settingsSelectedOpacity : 0.9)
+    toggleOnInk = .white
+    toggleOffInk = Self.rgb(dark ? 0xD8D8DC : 0xFFFFFF)
+    settingsAccent = Color(.sRGB, red: 0.562288, green: 0.423983, blue: 0.878559)
     hairStrong = (dark ? Color.white : Color.black).opacity(0.16)
     hair = (dark ? Color.white : Color.black).opacity(0.08)
     accentInk = Self.rgb(dark ? 0x17151F : 0xFFFFFF)

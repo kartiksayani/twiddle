@@ -7,6 +7,7 @@ final class KeyRouter {
   private let hide: () -> Void
   private let capsuleChanged: (Bool) -> Void
   private let layoutChanged: () -> Void
+  var openSettings: () -> Void = {}
   private var capsule = CommandCapsule()
 
   func tick() { updateCapsule(.tick) }
@@ -55,6 +56,7 @@ final class KeyRouter {
       case "s": model.handle(.sprint)
       case "/": model.handle(.toggleHints)
       case "p": model.handle(.progress)
+      case ",": openSettings()
       case "q": NSApp.terminate(nil)
       default: break
       }

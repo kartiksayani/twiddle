@@ -63,6 +63,7 @@ Nobody writes layout blind.
 ## Rules that stay
 
 - **Test boundary:** test Twiddle's behaviour, not Apple's window mechanics. Real-app checks prove our wiring once, and they aren't a repeated gate.
+- **Real-app tests share the owner's Mac:** synthetic input runs only against a throwaway TextEdit window. Check the frontmost app and pointer before every step, abort on any change, and never capture the screen.
 - **Pin before moving:** before moving or sharing UI or state code, pin every control it touches with tests that pass before and after.
 - **Saved formats:** a change to `state.json` keeps a test that reads the previous version. Otherwise the PR states the one-way step and the owner approves it.
 - **Tooling blockers:** one attempt of about 15 minutes, then report the cost and a cheaper route.

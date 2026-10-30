@@ -43,7 +43,7 @@ Sources/Twiddle/           App target.
   KeyRouter.swift          NSEvent to text input or Command
   HotkeyCenter.swift       Carbon registration
   StatusMenu.swift         NSStatusItem and NSMenu
-  SettingsWindow.swift     NSWindow hosting the settings form
+  SettingsWindow.swift     NSPanel hosting the settings form
 Tests/TwiddleCoreTests/
 Tests/TwiddleUITests/      SnapshotExport renders fixture states to PNG with ImageRenderer
 scripts/build-app.sh
@@ -74,7 +74,7 @@ Each file above is a guide, not a quota. Keep a type in the file that reads best
 - Text input uses `event.characters`. Ignore `isARepeat` for text, so holding a key is one press. `Backspace` may repeat.
 - Ignore events with an empty `characters` string, such as a dead key.
 - Holding ⌘ for 300 ms shows the capsule. Releasing it, or losing key status, hides it.
-- The hotkey uses Carbon `RegisterEventHotKey` with `kEventHotKeyExclusive`, which needs no permissions. A registration failure shows the Settings conflict state. Also check `CopySymbolicHotKeys`, so enabled macOS shortcuts count as conflicts.
+- The hotkey uses Carbon `RegisterEventHotKey` with `kEventHotKeyExclusive`, which needs no permissions. A registration failure shows the Settings conflict state. When recording a new shortcut, also check `CopySymbolicHotKeys`, so enabled macOS shortcuts count as conflicts. Never apply that check to the default or saved shortcut at launch: `⌃⌥Space` is a default macOS input-source shortcut, yet Carbon registers it and it works.
 - If `⌃⌥Space` itself conflicts at launch, the panel still opens from the menu bar and Settings shows the conflict.
 
 ## Typing rules
@@ -167,9 +167,9 @@ Theme follows `NSApp.effectiveAppearance` unless overridden. Convert the board's
 
 ## Settings window
 
-Our own `NSWindow`, 500 × 468 pt, hosting a SwiftUI form. Don't use the SwiftUI `Settings` scene, which is unreliable in accessory apps.
+Our own `NSPanel`, 500 × 468 pt, with `.titled`, `.closable`, `.fullSizeContentView` and `.nonactivatingPanel`, hosting a SwiftUI form. Don't use the SwiftUI `Settings` scene, which is unreliable in accessory apps.
 
-Opening it hides the panel, records `NSWorkspace.shared.frontmostApplication`, then activates Twiddle. Closing it reactivates the recorded app.
+Opening it hides the practice panel and makes the Settings panel key, without activating Twiddle. Focus therefore returns to the previous app by itself. Collection behaviour: `.moveToActiveSpace`, `.fullScreenAuxiliary`, so it never switches Spaces.
 
 Launch at login uses `SMAppService.mainApp`. If registration fails, show the failure beside the toggle and leave it off.
 

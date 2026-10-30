@@ -25,4 +25,21 @@ public enum PanelLayout {
       y: max(visible.y, min(frame.y, visible.y + visible.height - frame.height)),
       width: frame.width, height: frame.height)
   }
+
+  public static func position(
+    width: Double, height: Double, in visible: Rect, offset: Store.PanelOffset,
+    bottom: Double
+  ) -> Rect {
+    clamp(
+      Rect(
+        x: visible.x + (visible.width - width) / 2 + (offset.x.isFinite ? offset.x : 0),
+        y: visible.y + bottom + (offset.y.isFinite ? offset.y : 0),
+        width: width, height: height), to: visible)
+  }
+
+  public static func offset(of frame: Rect, in visible: Rect, bottom: Double) -> Store.PanelOffset {
+    Store.PanelOffset(
+      x: frame.x - (visible.x + (visible.width - frame.width) / 2),
+      y: frame.y - (visible.y + bottom))
+  }
 }

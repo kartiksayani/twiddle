@@ -1,18 +1,22 @@
 import SwiftUI
+import TwiddleCore
 
 public struct IntroView: View {
   @Environment(\.colorScheme) private var scheme
-  public init() {}
+  private let shortcut: Hotkey?
+  public init(hotkey: Hotkey? = .standard) { shortcut = hotkey }
 
   public var body: some View {
     let theme = Theme(scheme)
     VStack(alignment: .leading, spacing: Theme.introGap) {
       HStack(spacing: Theme.labelGap) {
-        Text("Press")
+        Text(shortcut == nil ? "Open" : "Press")
         HStack(spacing: Theme.introKeyGap) {
-          hotkey("⌃")
-          hotkey("⌥")
-          hotkey("Space")
+          if let shortcut {
+            ForEach(shortcut.parts, id: \.self) { hotkey($0) }
+          } else {
+            Text("Practise in the menu bar")
+          }
         }
         .padding(.horizontal, Theme.introKeyGap)
         Text("anywhere to practise.")
