@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><meta name="design_doc_mode" content="canvas"><style>body{margin:0;background:#E8E7E3;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;color:#1A1A1C;-webkit-font-smoothing:antialiased}a{color:#5B4BC4;text-decoration:none}a:hover{color:#3E2FA8;text-decoration:underline}</style></helmet>
+<section data-screen-label="00 Overview" style="padding:56px 56px 44px;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;flex-direction:column;gap:18px;max-width:1100px">
+  <div style="display:flex;align-items:baseline;gap:14px"><span style="font-size:40px;font-weight:600;letter-spacing:-0.02em">Twiddle</span><span style="font-size:15px;color:#6B6B70">A typing practice panel for the moments you're waiting</span></div>
+  <p style="margin:0;font-size:15px;line-height:1.55;color:#3A3A3E;text-wrap:pretty">This board builds out direction <a href="Twiddle Panel 1c Lens.dc.html">1c Lens</a> with strict mistakes, a header row taken from 1b, and the ⌘-hold commands from 1a. Everything is drawn at 1 pt = 1 px for a 14″ MacBook Pro (1512 × 982 pt) in the dark theme you use day to day, with light variants where the brief asks for them. The panel first appears bottom-centre, 40 pt above the screen edge (your Dock auto-hides), and after that it stays wherever you drag it. Twiddle's accent is violet and is used only for the caret, the next-key hint and the trend line.</p>
+  <div style="display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px">
+    <a href="#v01">01 Practice panel</a><a href="#v02">02 Summon and resume</a><a href="#v03">03 Sprint</a><a href="#v04">04 Content and mode</a><a href="#v05">05 Finger hints</a><a href="#v06">06 Progress</a><a href="#v07">07 Settings</a><a href="#v08">08 Menu bar</a><a href="#v09">09 First run</a><a href="#keys">Keyboard map</a><a href="#components">Components</a><a href="#tokens">Tokens</a><a href="#build">SwiftUI notes</a><a href="Twiddle Prototype.dc.html" style="font-weight:600">Clickable prototype →</a>
+  </div>
+</section>
+
+<section id="v01" data-screen-label="01 Practice panel, Flow" style="padding:56px;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:880px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font:600 12px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1A1A1C;color:#fff;border-radius:5px">01</span><span style="font-size:24px;font-weight:600;white-space:nowrap">Practice panel, Flow</span></div>
+    <p style="margin:0;font-size:14px;line-height:1.55;color:#3A3A3E;text-wrap:pretty">The panel is 720 × 136 pt, 6.6% of the screen, and floats 40 pt above the bottom edge. It covers none of the windows you are waiting on. Two lines of SF Mono 24 pt are visible, with the current line always on top. Typed text dims, upcoming text stays bright, and the stats sit at the right of the header.</p>
+  </div>
+  <div style="position:relative;width:1512px;height:982px;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.12),0 24px 60px rgba(0,0,0,0.18)">
+    <dc-import name="Desktop" hint-size="1512px,982px" style="position:absolute;left:0;top:0"></dc-import>
+    <dc-import name="Panel" theme="dark" caret="{{ 32 }}" pend="q" errs="16" wpm="{{ 78 }}" acc="96.4" hint-size="720px,136px" style="position:absolute;left:396px;top:806px"></dc-import>
+  </div>
+  <div style="font-size:12px;color:#6B6B70">14″ MacBook Pro, 1512 × 982 pt. Flow mode, Words. Live stats are 78 wpm and 96.4%. The caret is waiting on “a” because you hit “q”.</div>
+  <div style="display:flex;flex-wrap:wrap;gap:28px">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <div style="position:absolute;left:28px;top:-16px;width:440px;height:150px;border-radius:10px;background:#151517;box-shadow:0 0 0 0.5px rgba(255,255,255,0.12);padding:28px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:9px"><div style="height:7px;width:62%;border-radius:2px;background:#C9A6FF;opacity:0.5"></div><div style="height:7px;width:88%;border-radius:2px;background:#3A3A42"></div><div style="height:7px;width:74%;border-radius:2px;background:#3A3A42"></div><div style="height:7px;width:80%;border-radius:2px;background:#7FD4A8;opacity:0.45"></div><div style="height:7px;width:52%;border-radius:2px;background:#3A3A42"></div><div style="height:7px;width:66%;border-radius:2px;background:#3A3A42"></div><div style="height:7px;width:44%;border-radius:2px;background:#E8C468;opacity:0.5"></div></div>
+        <dc-import name="Panel" theme="dark" caret="{{ 32 }}" pend="q" errs="16" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70">Dark at 1×, over a terminal so the translucency is tested</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.93 0.03 250),oklch(0.84 0.045 285))">
+        <div style="position:absolute;left:28px;top:-16px;width:440px;height:150px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 0.5px rgba(0,0,0,0.12);padding:28px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:9px"><div style="height:7px;width:62%;border-radius:2px;background:#8E6BD8;opacity:0.5"></div><div style="height:7px;width:88%;border-radius:2px;background:#D9D9DE"></div><div style="height:7px;width:74%;border-radius:2px;background:#D9D9DE"></div><div style="height:7px;width:80%;border-radius:2px;background:#3E9B6C;opacity:0.45"></div><div style="height:7px;width:52%;border-radius:2px;background:#D9D9DE"></div><div style="height:7px;width:66%;border-radius:2px;background:#D9D9DE"></div><div style="height:7px;width:44%;border-radius:2px;background:#C09020;opacity:0.5"></div></div>
+        <dc-import name="Panel" theme="light" caret="{{ 32 }}" pend="q" errs="16" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70">Light at 1×</div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:9px">
+    <div style="position:relative;width:1640px;height:420px;border-radius:10px;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280));overflow:hidden">
+      <div style="position:absolute;left:100px;top:84px;width:720px;height:136px;transform:scale(2);transform-origin:0 0">
+        <dc-import name="Panel" theme="dark" caret="{{ 32 }}" pend="q" errs="16" hint-size="720px,136px" style="position:absolute;left:0;top:0"></dc-import>
+      </div>
+      <div style="position:absolute;left:100px;top:52px;width:1440px;height:1px;background:#6FB4FF"></div>
+      <div style="position:absolute;left:100px;top:46px;width:1px;height:13px;background:#6FB4FF"></div><div style="position:absolute;left:1539px;top:46px;width:1px;height:13px;background:#6FB4FF"></div>
+      <div style="position:absolute;left:770px;top:30px;font:500 12px ui-monospace,Menlo,monospace;color:#6FB4FF">720</div>
+      <div style="position:absolute;left:1566px;top:84px;width:1px;height:272px;background:#6FB4FF"></div>
+      <div style="position:absolute;left:1574px;top:210px;font:500 12px ui-monospace,Menlo,monospace;color:#6FB4FF">136</div>
+      <div style="position:absolute;left:62px;top:84px;width:1px;height:64px;background:#6FB4FF"></div>
+      <div style="position:absolute;left:20px;top:108px;font:500 12px ui-monospace,Menlo,monospace;color:#6FB4FF">32</div>
+      <div style="position:absolute;left:62px;top:172px;width:1px;height:72px;background:#6FB4FF"></div>
+      <div style="position:absolute;left:20px;top:200px;font:500 12px ui-monospace,Menlo,monospace;color:#6FB4FF">36</div>
+      <div style="position:absolute;left:62px;top:244px;width:1px;height:72px;background:#6FB4FF"></div>
+      <div style="position:absolute;left:20px;top:272px;font:500 12px ui-monospace,Menlo,monospace;color:#6FB4FF">36</div>
+      <div style="position:absolute;left:100px;top:376px;width:52px;height:1px;background:#6FB4FF"></div>
+      <div style="position:absolute;left:112px;top:384px;font:500 12px ui-monospace,Menlo,monospace;color:#6FB4FF">26</div>
+      <div style="position:absolute;left:1488px;top:376px;width:52px;height:1px;background:#6FB4FF"></div>
+      <div style="position:absolute;left:1500px;top:384px;font:500 12px ui-monospace,Menlo,monospace;color:#6FB4FF">26</div>
+      <div style="position:absolute;left:172px;right:172px;top:370px;display:flex;flex-wrap:wrap;justify-content:center;gap:6px 32px;font:500 12px ui-monospace,Menlo,monospace;color:#6FB4FF;white-space:nowrap"><span>radius 16</span><span>header: SF Pro Text 11.5 / 14, padding-top 2</span><span>body: padding 12 26 20</span><span>text: SF Mono 24 / 28 on 36 pt lines, 46 ch max</span><span>caret: 2 × 26, radius 1</span><span>error key tag: SF Pro 11 semibold, 4 pt above line</span></div>
+    </div>
+    <div style="font-size:12px;color:#6B6B70">Redline at 2×. All values are in points.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(5,minmax(0,220px));gap:28px;padding-top:6px">
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:12px;font-weight:600">Upcoming</div><div style="font-size:13px;line-height:1.5;color:#45454A">Full-strength ink so you can read ahead. On dark: #ECECEE.</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:12px;font-weight:600">Typed</div><div style="font-size:13px;line-height:1.5;color:#45454A">Dimmed to #8A8B92, which is still 5:1, so earlier text stays readable for context.</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:12px;font-weight:600">Mistyped, waiting</div><div style="font-size:13px;line-height:1.5;color:#45454A">The caret stays put. The expected letter turns red with a wavy underline, and the key you hit appears above it. Shape and colour both carry the error.</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:12px;font-weight:600">Fixed</div><div style="font-size:13px;line-height:1.5;color:#45454A">Once you type the right key, the letter dims like the rest and keeps a red dotted underline, so you can see where you stumbled.</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:12px;font-weight:600">Backspace</div><div style="font-size:13px;line-height:1.5;color:#45454A">In strict mode ⌫ only clears the red mark. It never moves back through correct text, so the right key is the only way forward.</div></div>
+  </div>
+</section>
+
+<section id="v02" data-screen-label="02 Summoned and resumed" style="padding:56px;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:880px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font:600 12px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1A1A1C;color:#fff;border-radius:5px">02</span><span style="font-size:24px;font-weight:600;white-space:nowrap">Summoned and resumed</span></div>
+    <p style="margin:0;font-size:14px;line-height:1.55;color:#3A3A3E;text-wrap:pretty">⌃⌥Space brings the panel back with the same text, the same source and today's stats. The caret returns to the start of the word you hadn't finished, so your first keystrokes make a whole word. A violet “Resumed” label replaces the mode until your first keystroke, or for 2 s. The panel never takes focus from the app behind it, so iTerm2 stays the active app.</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:28px">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <div style="position:absolute;left:28px;top:-16px;width:440px;height:150px;border-radius:10px;background:#151517;box-shadow:0 0 0 0.5px rgba(255,255,255,0.12)"></div>
+        <div style="position:absolute;left:40px;top:40px;width:720px;height:136px;box-sizing:border-box;border:1.5px dashed #6FB4FF;border-radius:16px"></div>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">0 ms</b>: ⌃⌥Space is pressed. The dashed outline marks where the panel will land, which is its last position.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <div style="position:absolute;left:28px;top:-16px;width:440px;height:150px;border-radius:10px;background:#151517;box-shadow:0 0 0 0.5px rgba(255,255,255,0.12)"></div>
+        <dc-import name="Panel" theme="dark" caret="{{ 24 }}" errs="16" fade="{{ 0.45 }}" note="Resumed" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">60 ms</b>: fading in and rising 8 pt, with a 180 ms ease-out. There is no scale and no bounce.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <div style="position:absolute;left:28px;top:-16px;width:440px;height:150px;border-radius:10px;background:#151517;box-shadow:0 0 0 0.5px rgba(255,255,255,0.12)"></div>
+        <dc-import name="Panel" theme="dark" caret="{{ 24 }}" errs="16" note="Resumed" noteSub="from the start of “about”" blink="{{ true }}" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">180 ms</b>: settled. You had typed “ab”, so the caret is back on the “a”. It blinks until you type.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <div style="position:absolute;left:28px;top:-16px;width:440px;height:150px;border-radius:10px;background:#151517;box-shadow:0 0 0 0.5px rgba(255,255,255,0.12)"></div>
+        <dc-import name="Panel" theme="dark" caret="{{ 26 }}" errs="16" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">First keystrokes</b>: the label hands back to “Flow · Words” and the stats carry on from today.</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(0,260px));gap:28px">
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:12px;font-weight:600">Dismiss</div><div style="font-size:13px;line-height:1.5;color:#45454A">Esc always works: a 120 ms fade with no movement. ⌃⌥Space also toggles the panel closed.</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:12px;font-weight:600">Click away</div><div style="font-size:13px;line-height:1.5;color:#45454A">Clicking any other window hides the panel the same way. The click still goes to that window, and the run is saved.</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:12px;font-weight:600">Idle</div><div style="font-size:13px;line-height:1.5;color:#45454A">After 10 s without a key, the WPM clock stops, the header reads “Paused” and the caret blinks. Nothing else moves, and the next key carries straight on.</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:12px;font-weight:600">Long gaps</div><div style="font-size:13px;line-height:1.5;color:#45454A">The run ends after 5 idle minutes or when you hide the panel. Only active seconds count towards minutes practised.</div></div>
+  </div>
+</section>
+
+<section id="v03" data-screen-label="03 Sprint" style="padding:56px;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:880px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font:600 12px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1A1A1C;color:#fff;border-radius:5px">03</span><span style="font-size:24px;font-weight:600;white-space:nowrap">Sprint</span></div>
+    <p style="margin:0;font-size:14px;line-height:1.55;color:#3A3A3E;text-wrap:pretty">⌘S switches to Sprint using the last length you chose. Press ⌘S again to cycle 15 → 30 → 60 s. The clock starts on your first key and a 2 pt bar under the header fills as time runs. At 0:00, input pauses for 600 ms so stray keys aren't counted, then the result replaces the text in the same frame. It stays until you choose: ↩ runs again, ⌘F returns to Flow where you left it, and Esc hides.</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:28px">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <dc-import name="Panel" theme="dark" mode="Sprint" sprintLen="30 s" note="Sprint 30 s" noteSub="starts on your first key" clock="0:30" progress="{{ 0 }}" wpm="–" acc="–" text="{{ s.sprint }}" caret="{{ 0 }}" blink="{{ true }}" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">Ready</b>: you get fresh text, and the stats are blank until the first key.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <dc-import name="Panel" theme="dark" mode="Sprint" sprintLen="30 s" clock="0:18" progress="{{ 0.4 }}" wpm="{{ 86 }}" acc="97.8" text="{{ s.sprint }}" caret="{{ 38 }}" errs="21" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">Running</b>: 18 s left. The clock sits in front of the live stats.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <dc-import name="Panel" theme="dark" view="result" mode="Sprint" sprintLen="30 s" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">Result, dark</b>: 30 s, 84 wpm, 97.1%, 3 mistakes, slowest pair “br”. The frame stays the same size, so nothing jumps.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.93 0.03 250),oklch(0.84 0.045 285))">
+        <dc-import name="Panel" theme="light" view="result" mode="Sprint" sprintLen="30 s" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">Result, light</b>. The keycap for ↩ is filled because it is the default action.</div>
+    </div>
+  </div>
+</section>
+
+<section id="v04" data-screen-label="04 Content and mode switching" style="padding:56px;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:880px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font:600 12px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1A1A1C;color:#fff;border-radius:5px">04</span><span style="font-size:24px;font-weight:600;white-space:nowrap">Content and mode switching</span></div>
+    <p style="margin:0;font-size:14px;line-height:1.55;color:#3A3A3E;text-wrap:pretty">Holding ⌘ for 300 ms shows every command in a capsule above the panel, with the current choices in bold. A quick ⌘ chord never shows the capsule. ⌘1–4 switch the source and ⌘F / ⌘S switch the mode. Each source keeps its own place, so switching away and back loses nothing.</p>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:9px">
+    <div style="position:relative;width:800px;height:260px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+      <div style="position:absolute;left:28px;top:-16px;width:440px;height:150px;border-radius:10px;background:#151517;box-shadow:0 0 0 0.5px rgba(255,255,255,0.12)"></div>
+      <dc-import name="Panel" theme="dark" cmd="{{ true }}" caret="{{ 32 }}" errs="16" hint-size="720px,136px" style="position:absolute;left:40px;top:84px"></dc-import>
+    </div>
+    <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">⌘ held</b>. The capsule disappears when you release ⌘, and the chord itself never types anything.</div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:28px">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <dc-import name="Panel" theme="dark" source="Words" text="{{ s.words }}" caret="{{ 26 }}" errs="16" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">⌘1 Words</b>: lowercase common words with single spaces.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <dc-import name="Panel" theme="dark" source="Code" text="{{ s.code }}" caret="{{ 20 }}" wpm="{{ 61 }}" acc="94.8" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">⌘2 Code</b>: real line breaks are shown as ↵ and typed with Return. Leading indentation is skipped for you, so ⇥ is never needed.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <dc-import name="Panel" theme="dark" source="Code" text="{{ s.terminal }}" caret="{{ 14 }}" wpm="{{ 58 }}" acc="95.2" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">⌘2 Code, shell lines</b>: Code mixes Go with the terminal commands you actually type: flags, ~, &amp;&amp; and long options.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <dc-import name="Panel" theme="dark" source="Prose" text="{{ s.prose }}" caret="{{ 30 }}" wpm="{{ 74 }}" acc="97.0" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">⌘3 Prose</b>: capitals and punctuation, which means you need Shift and commas.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <dc-import name="Panel" theme="dark" source="Weak keys" text="{{ s.weak }}" caret="{{ 12 }}" wpm="{{ 52 }}" acc="91.3" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">⌘4 Weak keys</b>: real words heavy in your five weakest keys, with short drills for the symbols (here q, z, [, ], -).</div>
+    </div>
+  </div>
+</section>
+
+<section id="v05" data-screen-label="05 Finger hints" style="padding:56px;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:880px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font:600 12px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1A1A1C;color:#fff;border-radius:5px">05</span><span style="font-size:24px;font-weight:600;white-space:nowrap">Finger hints</span></div>
+    <p style="margin:0;font-size:14px;line-height:1.55;color:#3A3A3E;text-wrap:pretty">⌘/ toggles hints, which are off by default. A 116 pt strip opens under the text, and the panel grows upwards so the text stays where your eyes are. The map fills the next key in violet and tints every key that finger owns, using standard QWERTY touch-typing zones. When Shift is needed, the opposite Shift key is outlined. The hints follow the expected key even while a mistake is waiting, so they never grade you.</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:332px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <div style="position:absolute;left:40px;top:40px;width:720px;height:124px;box-sizing:border-box;border:1.5px dashed rgba(111,180,255,0.6);border-radius:16px 16px 0 0;border-bottom:none"></div>
+        <dc-import name="Panel" theme="dark" text="{{ s.words }}" caret="{{ 26 }}" errs="16" hint-size="720px,136px" style="position:absolute;left:40px;top:156px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">Off</b>, the default. The dashed area shows the room the strip takes when it opens.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:332px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <dc-import name="Panel" theme="dark" hints="{{ true }}" text="{{ s.words }}" caret="{{ 26 }}" errs="16" hint-size="720px,252px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">On</b>: next is “o”, so the right ring finger, reaching up from l. The panel is 720 × 252 pt.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:332px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <dc-import name="Panel" theme="dark" hints="{{ true }}" source="Prose" text="{{ s.prose }}" caret="{{ 0 }}" wpm="{{ 74 }}" acc="97.0" hint-size="720px,252px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">On, with a capital</b>: “T” is the left index finger, with the right pinky holding ⇧.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:332px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.93 0.03 250),oklch(0.84 0.045 285))">
+        <dc-import name="Panel" theme="light" hints="{{ true }}" source="Code" text="{{ s.code }}" caret="{{ 13 }}" wpm="{{ 61 }}" acc="94.8" hint-size="720px,252px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">On, light, symbol</b>: “(” is the right ring finger on 9, with the left pinky holding ⇧.</div>
+    </div>
+  </div>
+</section>
+
+<section id="v06" data-screen-label="06 Progress" style="padding:56px;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:880px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font:600 12px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1A1A1C;color:#fff;border-radius:5px">06</span><span style="font-size:24px;font-weight:600;white-space:nowrap">Progress</span></div>
+    <p style="margin:0;font-size:14px;line-height:1.55;color:#3A3A3E;text-wrap:pretty">⌘P swaps the text for a quick look at today's numbers, the WPM of your last 20 runs and your five weakest keys. Any typing key goes straight back to the text and counts as typed, so a glance costs nothing. ⌘P or Esc also close it.</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:28px">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:268px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <dc-import name="Panel" theme="dark" view="progress" note="Today" hint-size="720px,188px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">Dark</b>: 11 minutes, 76 average and 91 best. The weakest keys show average milliseconds per key (sample values).</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:268px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.93 0.03 250),oklch(0.84 0.045 285))">
+        <dc-import name="Panel" theme="light" view="progress" note="Today" hint-size="720px,188px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">Light</b>. The filled dot is your best run and the ringed dot is the latest.</div>
+    </div>
+  </div>
+</section>
+
+<section id="v07" data-screen-label="07 Settings" style="padding:56px;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:880px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font:600 12px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1A1A1C;color:#fff;border-radius:5px">07</span><span style="font-size:24px;font-weight:600;white-space:nowrap">Settings</span></div>
+    <p style="margin:0;font-size:14px;line-height:1.55;color:#3A3A3E;text-wrap:pretty">A standard macOS settings window opened with ⌘, from the panel or the menu bar. It has one page and no tabs. I've added Mistakes alongside the settings you listed, because both behaviours exist.</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="width:500px;border-radius:12px;overflow:hidden;background:#232326;box-shadow:0 0 0 0.5px rgba(255,255,255,0.12),0 0 0 1px rgba(0,0,0,0.5),0 24px 60px rgba(0,0,0,0.3);color:#ECECEE;font-size:13px">
+        <div style="height:40px;display:flex;align-items:center;padding:0 14px;position:relative"><div style="display:flex;gap:8px"><div style="width:12px;height:12px;border-radius:50%;background:#FF5F57"></div><div style="width:12px;height:12px;border-radius:50%;background:#FEBC2E"></div><div style="width:12px;height:12px;border-radius:50%;background:#4A4A50"></div></div><div style="position:absolute;left:0;right:0;text-align:center;font-weight:600;pointer-events:none">Twiddle Settings</div></div>
+        <div style="padding:6px 20px 22px;display:flex;flex-direction:column;gap:16px">
+          <div style="border-radius:9px;background:rgba(255,255,255,0.04);box-shadow:inset 0 0 0 0.5px rgba(255,255,255,0.1)">
+            <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px"><span>Summon hotkey</span><div style="display:flex;align-items:center;gap:8px"><div style="height:24px;min-width:120px;box-sizing:border-box;padding:0 6px 0 10px;border-radius:6px;background:rgba(255,255,255,0.08);box-shadow:inset 0 0 0 0.5px rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:space-between;gap:10px"><span style="font-weight:500;letter-spacing:0.04em">⌃⌥Space</span><span style="width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,0.18);color:#232326;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center">×</span></div></div></div>
+            <div style="height:0.5px;margin:0 12px;background:rgba(255,255,255,0.08)"></div>
+            <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px"><span>Launch at login</span><div style="width:32px;height:18px;border-radius:9px;background:oklch(0.62 0.17 295);position:relative"><div style="position:absolute;right:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,0.3)"></div></div></div>
+          </div>
+          <div style="border-radius:9px;background:rgba(255,255,255,0.04);box-shadow:inset 0 0 0 0.5px rgba(255,255,255,0.1)">
+            <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px"><span>Default mode</span><div style="display:flex;padding:2px;border-radius:7px;background:rgba(255,255,255,0.08);font-size:12px"><span style="padding:3px 14px;border-radius:5px;background:rgba(255,255,255,0.2);font-weight:500">Flow</span><span style="padding:3px 14px;color:#A3A4AA">Sprint</span></div></div>
+            <div style="height:0.5px;margin:0 12px;background:rgba(255,255,255,0.08)"></div>
+            <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px"><span>Sprint length</span><div style="height:22px;padding:0 8px 0 10px;border-radius:6px;background:rgba(255,255,255,0.08);display:flex;align-items:center;gap:18px;font-size:12px">30 seconds<span style="color:#A3A4AA;font-size:9px">▲▼</span></div></div>
+            <div style="height:0.5px;margin:0 12px;background:rgba(255,255,255,0.08)"></div>
+            <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px"><span>Default source</span><div style="height:22px;padding:0 8px 0 10px;border-radius:6px;background:rgba(255,255,255,0.08);display:flex;align-items:center;gap:18px;font-size:12px">Words<span style="color:#A3A4AA;font-size:9px">▲▼</span></div></div>
+          </div>
+          <div style="border-radius:9px;background:rgba(255,255,255,0.04);box-shadow:inset 0 0 0 0.5px rgba(255,255,255,0.1)">
+            <div style="min-height:56px;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 12px"><div style="display:flex;flex-direction:column;gap:2px"><span>Mistakes</span><span style="font-size:11px;color:#8A8B92">Strict waits for the right key</span></div><div style="display:flex;padding:2px;border-radius:7px;background:rgba(255,255,255,0.08);font-size:12px"><span style="padding:3px 14px;border-radius:5px;background:rgba(255,255,255,0.2);font-weight:500">Strict</span><span style="padding:3px 14px;color:#A3A4AA">Forgiving</span></div></div>
+            <div style="height:0.5px;margin:0 12px;background:rgba(255,255,255,0.08)"></div>
+            <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px"><span>Finger hints</span><div style="width:32px;height:18px;border-radius:9px;background:rgba(255,255,255,0.14);position:relative"><div style="position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#D8D8DC;box-shadow:0 1px 2px rgba(0,0,0,0.3)"></div></div></div>
+            <div style="height:0.5px;margin:0 12px;background:rgba(255,255,255,0.08)"></div>
+            <div style="height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 12px"><span>Theme</span><div style="display:flex;padding:2px;border-radius:7px;background:rgba(255,255,255,0.08);font-size:12px"><span style="padding:3px 12px;color:#A3A4AA">System</span><span style="padding:3px 12px;color:#A3A4AA">Light</span><span style="padding:3px 12px;border-radius:5px;background:rgba(255,255,255,0.2);font-weight:500">Dark</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#6B6B70">500 × 468 pt. Rows are 44 pt in inset groups with 20 pt margins.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:28px">
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div style="width:460px;border-radius:9px;background:#232326;box-shadow:0 0 0 0.5px rgba(255,255,255,0.1),0 12px 30px rgba(0,0,0,0.2);color:#ECECEE;font-size:13px;padding:0 12px">
+          <div style="height:52px;display:flex;align-items:center;justify-content:space-between"><span>Summon hotkey</span><div style="height:26px;min-width:150px;box-sizing:border-box;padding:0 10px;border-radius:6px;background:rgba(255,255,255,0.08);box-shadow:0 0 0 3px oklch(0.62 0.17 295 / 0.5),inset 0 0 0 1px oklch(0.74 0.15 295);display:flex;align-items:center;gap:8px;color:#A3A4AA">Type a shortcut<span style="width:1.5px;height:14px;background:oklch(0.74 0.15 295)"></span></div></div>
+          <div style="padding:0 0 12px;font-size:11.5px;color:#8A8B92;text-align:right">esc cancels, ⌫ clears</div>
+        </div>
+        <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">Recording</b>: click the field or press ↩ on it. The shortcut must include ⌘, ⌃ or ⌥.</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div style="width:460px;border-radius:9px;background:#232326;box-shadow:0 0 0 0.5px rgba(255,255,255,0.1),0 12px 30px rgba(0,0,0,0.2);color:#ECECEE;font-size:13px;padding:0 12px">
+          <div style="height:52px;display:flex;align-items:center;justify-content:space-between"><span>Summon hotkey</span><div style="height:26px;min-width:150px;box-sizing:border-box;padding:0 10px;border-radius:6px;background:rgba(255,255,255,0.08);box-shadow:inset 0 0 0 1px oklch(0.72 0.17 25);display:flex;align-items:center;font-weight:500;letter-spacing:0.04em">⌥Space</div></div>
+          <div style="padding:0 0 12px;font-size:11.5px;color:oklch(0.78 0.13 25);text-align:right">Another app is already using ⌥Space. Try another.</div>
+        </div>
+        <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">Conflict</b>: this happens if registering the shortcut fails, for example ⌥Space when Raycast holds it.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="v08" data-screen-label="08 Menu bar" style="padding:56px;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:880px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font:600 12px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1A1A1C;color:#fff;border-radius:5px">08</span><span style="font-size:24px;font-weight:600;white-space:nowrap">Menu bar</span></div>
+    <p style="margin:0;font-size:14px;line-height:1.55;color:#3A3A3E;text-wrap:pretty">Twiddle has no Dock icon. The menu bar icon is a small text field with a caret in it, drawn as a template image so macOS tints it. The menu has five items, plus today's numbers as a line you can read but not click.</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:620px;height:300px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 80% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280));font-size:13px;color:#ECECEE">
+        <div style="position:absolute;left:0;right:0;top:0;height:37px;background:rgba(20,20,26,0.38);display:flex;align-items:center;justify-content:flex-end;gap:16px;padding:0 18px">
+          <div style="height:24px;padding:0 7px;border-radius:5px;background:rgba(255,255,255,0.22);display:flex;align-items:center"><div style="position:relative;width:16px;height:12px;border:1.5px solid #ECECEE;border-radius:3.5px;box-sizing:border-box"><div style="position:absolute;left:3px;top:2px;width:1.5px;height:5px;background:#ECECEE;border-radius:1px"></div></div></div>
+          <div style="display:flex;align-items:center;gap:1px"><div style="width:22px;height:11px;border:1px solid rgba(230,230,232,0.7);border-radius:3px;padding:1px;box-sizing:border-box"><div style="width:72%;height:100%;background:#E6E6E8;border-radius:1px"></div></div><div style="width:1.5px;height:4px;background:rgba(230,230,232,0.7);border-radius:1px"></div></div>
+          <span>Fri 30 Oct&nbsp;&nbsp;14:12</span>
+        </div>
+        <div style="position:absolute;left:300px;top:42px;width:270px;box-sizing:border-box;padding:5px;border-radius:10px;background:rgba(40,40,46,0.82);backdrop-filter:blur(30px) saturate(1.6);-webkit-backdrop-filter:blur(30px) saturate(1.6);box-shadow:inset 0 0 0 0.5px rgba(255,255,255,0.16),0 0 0 0.5px rgba(0,0,0,0.6),0 14px 36px rgba(0,0,0,0.45);display:flex;flex-direction:column">
+          <div style="height:24px;display:flex;align-items:center;justify-content:space-between;padding:0 9px;border-radius:5px;background:oklch(0.55 0.17 295)"><span>Practise</span><span style="color:rgba(255,255,255,0.85)">⌃⌥Space</span></div>
+          <div style="padding:5px 9px 6px;font-size:12px;color:#8A8B92;font-variant-numeric:tabular-nums">Today: 11 min · 76 avg · 91 best</div>
+          <div style="height:0.5px;margin:4px 9px;background:rgba(255,255,255,0.12)"></div>
+          <div style="height:24px;display:flex;align-items:center;justify-content:space-between;padding:0 9px"><span>Progress</span><span style="color:#8A8B92">⌘P</span></div>
+          <div style="height:24px;display:flex;align-items:center;justify-content:space-between;padding:0 9px"><span>Settings…</span><span style="color:#8A8B92">⌘,</span></div>
+          <div style="height:0.5px;margin:4px 9px;background:rgba(255,255,255,0.12)"></div>
+          <div style="height:24px;display:flex;align-items:center;justify-content:space-between;padding:0 9px"><span>Quit Twiddle</span><span style="color:#8A8B92">⌘Q</span></div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#6B6B70">The menu is open and Practise is highlighted. Progress opens the panel straight into view 06.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="width:300px;height:300px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 0.5px rgba(0,0,0,0.1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px">
+        <div style="position:relative;width:96px;height:72px;border:9px solid #1A1A1C;border-radius:21px;box-sizing:border-box"><div style="position:absolute;left:18px;top:12px;width:9px;height:30px;background:#1A1A1C;border-radius:4px"></div></div>
+        <div style="display:flex;gap:24px;align-items:center">
+          <div style="position:relative;width:16px;height:12px;border:1.5px solid #1A1A1C;border-radius:3.5px;box-sizing:border-box"><div style="position:absolute;left:3px;top:2px;width:1.5px;height:5px;background:#1A1A1C;border-radius:1px"></div></div>
+          <div style="padding:6px 8px;border-radius:5px;background:#26262A"><div style="position:relative;width:16px;height:12px;border:1.5px solid #ECECEE;border-radius:3.5px;box-sizing:border-box"><div style="position:absolute;left:3px;top:2px;width:1.5px;height:5px;background:#ECECEE;border-radius:1px"></div></div></div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:#6B6B70">Icon: 16 × 12 pt, 1.5 pt stroke, 3.5 pt radius, with a 1.5 × 5 caret. Shown at 6× and 1×.</div>
+    </div>
+  </div>
+</section>
+
+<section id="v09" data-screen-label="09 First run" style="padding:56px;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:880px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font:600 12px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1A1A1C;color:#fff;border-radius:5px">09</span><span style="font-size:24px;font-weight:600;white-space:nowrap">First run</span></div>
+    <p style="margin:0;font-size:14px;line-height:1.55;color:#3A3A3E;text-wrap:pretty">On first launch the panel appears once at bottom-centre with two sentences inside it. Your first keystroke replaces them with Flow · Words and counts as typed. The global hotkey needs no permissions, so there are no prompts, no steps and no account.</p>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:28px">
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.36 0.06 255),oklch(0.2 0.035 280))">
+        <div style="position:absolute;left:28px;top:-16px;width:440px;height:150px;border-radius:10px;background:#151517;box-shadow:0 0 0 0.5px rgba(255,255,255,0.12)"></div>
+        <dc-import name="Panel" theme="dark" view="intro" note="Twiddle" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">Dark</b>: the same 720 × 136 frame, so the introduction already teaches you where the panel lives.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="position:relative;width:800px;height:216px;border-radius:10px;overflow:hidden;background:radial-gradient(120% 140% at 20% 0%,oklch(0.93 0.03 250),oklch(0.84 0.045 285))">
+        <dc-import name="Panel" theme="light" view="intro" note="Twiddle" hint-size="720px,136px" style="position:absolute;left:40px;top:40px"></dc-import>
+      </div>
+      <div style="font-size:12px;color:#6B6B70"><b style="color:#1A1A1C">Light</b></div>
+    </div>
+  </div>
+</section>
+<section id="keys" data-screen-label="Keyboard map" style="padding:56px;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:880px">
+    <div style="display:flex;align-items:baseline;gap:12px"><span style="font:600 12px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1A1A1C;color:#fff;border-radius:5px">⌨</span><span style="font-size:24px;font-weight:600;white-space:nowrap">Keyboard map</span></div>
+    <p style="margin:0;font-size:14px;line-height:1.55;color:#3A3A3E;text-wrap:pretty">Printable keys always go to the text. Every command is either a ⌘ chord or a key that never appears in practice text. Esc hides the panel in every state.</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,420px));gap:24px;align-items:start">
+    <div style="background:#fff;border-radius:10px;box-shadow:0 0 0 0.5px rgba(0,0,0,0.1);padding:18px 20px;display:flex;flex-direction:column;gap:2px;font-size:13px">
+      <div style="font-size:12px;font-weight:600;color:#6B6B70;padding-bottom:8px">Anywhere in macOS</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Summon, or hide if showing</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500">⌃⌥Space</span></div>
+      <div style="font-size:12px;font-weight:600;color:#6B6B70;padding:16px 0 8px">In the panel</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Hide, always</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500">Esc</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Show all commands</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500">hold ⌘</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Words · Code · Prose · Weak keys</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500">⌘1 – ⌘4</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Flow</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500">⌘F</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Sprint; again cycles 15 / 30 / 60 s</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500">⌘S</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Fresh text, skipping the rest</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500">⌘↩</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Finger hints on / off</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500">⌘/</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Progress</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500">⌘P</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Settings</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500">⌘,</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Quit Twiddle</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500">⌘Q</span></div>
+    </div>
+    <div style="background:#fff;border-radius:10px;box-shadow:0 0 0 0.5px rgba(0,0,0,0.1);padding:18px 20px;display:flex;flex-direction:column;gap:2px;font-size:13px">
+      <div style="font-size:12px;font-weight:600;color:#6B6B70;padding-bottom:8px">While typing (strict)</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Any printable key: the expected key advances; anything else marks a mistake and waits</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500;flex:none">a–z …</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Clears the red mark and never moves back</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500;flex:none">⌫</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Line break in Code; ignored elsewhere</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500;flex:none">↩</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Ignored, because indentation is skipped for you</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500;flex:none">⇥</span></div>
+      <div style="font-size:12px;font-weight:600;color:#6B6B70;padding:16px 0 8px">Forgiving mode (setting)</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>The caret moves on after a mistake; ⌫ steps back one</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500;flex:none">⌫</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Delete the current word</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500;flex:none">⌥⌫</span></div>
+    </div>
+    <div style="background:#fff;border-radius:10px;box-shadow:0 0 0 0.5px rgba(0,0,0,0.1);padding:18px 20px;display:flex;flex-direction:column;gap:2px;font-size:13px">
+      <div style="font-size:12px;font-weight:600;color:#6B6B70;padding-bottom:8px">Sprint result</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Another sprint, same length</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500">↩</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Back to Flow where you left it</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500">⌘F</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Letters are ignored so a stray key can't restart</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500">a–z</span></div>
+      <div style="font-size:12px;font-weight:600;color:#6B6B70;padding:16px 0 8px">Progress view</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Back to the text, and the key is typed</span><span style="display:inline-flex;align-items:center;height:22px;padding:0 7px;border-radius:6px;background:#F4F4F5;box-shadow:0 0 0 0.5px rgba(0,0,0,0.18),0 1px 0 rgba(0,0,0,0.12);font-size:12px;font-weight:500">any key</span></div>
+      <div style="font-size:12px;font-weight:600;color:#6B6B70;padding:16px 0 8px">Mouse, optional</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Move the panel; the position is remembered</span><span style="font-size:12px;color:#6B6B70">drag the header</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Back to bottom-centre</span><span style="font-size:12px;color:#6B6B70">double-click the header</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:34px;border-top:0.5px solid rgba(0,0,0,0.08)"><span>Hide and save</span><span style="font-size:12px;color:#6B6B70">click any other window</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="components" data-screen-label="Component sheet" style="padding:56px;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;align-items:baseline;gap:12px"><span style="font:600 12px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1A1A1C;color:#fff;border-radius:5px">◻</span><span style="font-size:24px;font-weight:600;white-space:nowrap">Components</span></div>
+  <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+    <div style="width:820px;box-sizing:border-box;border-radius:12px;padding:28px 30px;background:radial-gradient(120% 100% at 20% 0%,oklch(0.3 0.05 260),oklch(0.18 0.03 282));display:flex;flex-direction:column;gap:28px;color:#ECECEE">
+      <div style="display:flex;flex-direction:column;gap:12px"><div style="font-size:11.5px;color:#A3A4AA">Practice text states</div>
+        <div style="display:flex;gap:30px;align-items:flex-end;font:400 24px/28px ui-monospace,'SF Mono',Menlo,monospace;white-space:pre">
+          <div style="display:flex;flex-direction:column;gap:10px"><span style="color:#ECECEE">next</span><span style="font:400 11px -apple-system,sans-serif;color:#8A8B92">upcoming</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px"><span style="color:#8A8B92">done</span><span style="font:400 11px -apple-system,sans-serif;color:#8A8B92">typed</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px"><span style="display:flex"><span style="color:#8A8B92">a</span><span style="position:relative;color:#ECECEE"><span style="position:absolute;left:-1px;top:1px;bottom:1px;width:2px;border-radius:1px;background:oklch(0.74 0.15 295)"></span>b</span><span style="color:#ECECEE">c</span></span><span style="font:400 11px -apple-system,sans-serif;color:#8A8B92">caret</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px"><span style="display:flex"><span style="color:#8A8B92">a</span><span style="position:relative;color:oklch(0.72 0.17 25);text-decoration:underline wavy oklch(0.72 0.17 25);text-decoration-thickness:1.5px;text-underline-offset:6px;text-decoration-skip-ink:none"><span style="position:absolute;left:-1px;top:1px;bottom:1px;width:2px;border-radius:1px;background:oklch(0.74 0.15 295)"></span><span style="position:absolute;left:50%;top:-12px;transform:translateX(-50%);font:600 11px/1 -apple-system,sans-serif">q</span>b</span><span style="color:#ECECEE">c</span></span><span style="font:400 11px -apple-system,sans-serif;color:#8A8B92">waiting on a mistake</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px"><span style="display:flex;color:#8A8B92"><span>a</span><span style="text-decoration:underline dotted oklch(0.72 0.17 25);text-decoration-thickness:1.5px;text-underline-offset:6px">b</span><span>c</span></span><span style="font:400 11px -apple-system,sans-serif;color:#8A8B92">fixed</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px"><span style="color:#5E5F66">↵</span><span style="font:400 11px -apple-system,sans-serif;color:#8A8B92">line break</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px"><div style="font-size:11.5px;color:#A3A4AA">Stat readout</div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:11.5px;color:#8A8B92;font-variant-numeric:tabular-nums">
+          <div style="display:flex;align-items:center;gap:14px"><span><span style="color:#ECECEE;font-weight:500">78</span> wpm</span><span><span style="color:#ECECEE;font-weight:500">96.4</span>%</span><span style="display:inline-flex;align-items:center;height:16px;padding:0 4px;border-radius:4px;background:rgba(255,255,255,0.1);font-size:10.5px">⌘</span><span style="margin-left:16px;color:#5E5F66">live</span></div>
+          <div style="display:flex;align-items:center;gap:14px"><span>Paused</span><span><span style="color:#ECECEE;font-weight:500">78</span> wpm</span><span><span style="color:#ECECEE;font-weight:500">96.4</span>%</span><span style="margin-left:16px;color:#5E5F66">idle 10 s</span></div>
+          <div style="display:flex;align-items:center;gap:14px"><span style="color:#ECECEE;font-weight:600">0:18</span><span><span style="color:#ECECEE;font-weight:500">86</span> wpm</span><span><span style="color:#ECECEE;font-weight:500">97.8</span>%</span><span style="margin-left:16px;color:#5E5F66">sprint</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px"><div style="font-size:11.5px;color:#A3A4AA">Mode and source</div>
+        <div style="display:flex;gap:28px;font-size:11.5px">
+          <span style="display:flex;gap:6px"><span style="font-weight:500">Flow</span><span style="color:#5E5F66">·</span><span style="color:#A3A4AA">Words</span></span>
+          <span style="display:flex;gap:6px"><span style="font-weight:500">Sprint 30 s</span><span style="color:#5E5F66">·</span><span style="color:#A3A4AA">Code</span></span>
+          <span style="display:flex;gap:6px"><span style="font-weight:500;color:oklch(0.74 0.15 295)">Resumed</span><span style="color:#8A8B92">from the start of “about”</span></span>
+        </div>
+        <div style="display:flex;height:32px;width:max-content;align-items:center;gap:10px;padding:0 12px;border-radius:10px;background:rgba(24,24,28,0.72);box-shadow:inset 0 0 0 0.5px rgba(255,255,255,0.16);white-space:nowrap;font-size:11px;color:#A3A4AA">
+          <span style="display:flex;align-items:center;gap:5px;color:#ECECEE;font-weight:600"><span style="display:inline-flex;align-items:center;height:18px;padding:0 4px;border-radius:4px;background:rgba(255,255,255,0.1);font-weight:400;font-size:10.5px">⌘1</span>Words</span>
+          <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-flex;align-items:center;height:18px;padding:0 4px;border-radius:4px;background:rgba(255,255,255,0.1);color:#ECECEE;font-size:10.5px">⌘2</span>Code</span>
+          <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-flex;align-items:center;height:18px;padding:0 4px;border-radius:4px;background:rgba(255,255,255,0.1);color:#ECECEE;font-size:10.5px">⌘3</span>Prose</span>
+          <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-flex;align-items:center;height:18px;padding:0 4px;border-radius:4px;background:rgba(255,255,255,0.1);color:#ECECEE;font-size:10.5px">⌘4</span>Weak keys</span>
+          <span style="width:1px;height:14px;background:rgba(255,255,255,0.16)"></span>
+          <span style="display:flex;align-items:center;gap:5px;color:#ECECEE;font-weight:600"><span style="display:inline-flex;align-items:center;height:18px;padding:0 4px;border-radius:4px;background:rgba(255,255,255,0.1);font-weight:400;font-size:10.5px">⌘F</span>Flow</span>
+          <span style="display:flex;align-items:center;gap:5px"><span style="display:inline-flex;align-items:center;height:18px;padding:0 4px;border-radius:4px;background:rgba(255,255,255,0.1);color:#ECECEE;font-size:10.5px">⌘S</span>Sprint</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px"><div style="font-size:11.5px;color:#A3A4AA">Key map (finger hints)</div>
+        <dc-import name="Panel" theme="dark" part="keymap" caret="{{ 26 }}" hint-size="720px,116px"></dc-import>
+      </div>
+      <div style="display:flex;gap:28px;align-items:flex-start">
+        <div style="display:flex;flex-direction:column;gap:12px"><div style="font-size:11.5px;color:#A3A4AA">Trend chart</div>
+          <dc-import name="Panel" theme="dark" part="trend" hint-size="290px,140px"></dc-import>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px"><div style="font-size:11.5px;color:#A3A4AA">Keycap chip</div>
+          <div style="display:flex;align-items:flex-end;gap:14px">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:8px"><span style="display:inline-flex;align-items:center;height:16px;padding:0 4px;border-radius:4px;background:rgba(255,255,255,0.1);font-size:10.5px">⌘</span><span style="font-size:10.5px;color:#8A8B92">XS 16</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:8px"><span style="display:inline-flex;align-items:center;height:18px;padding:0 4px;border-radius:4px;background:rgba(255,255,255,0.1);font-size:10.5px">⌘F</span><span style="font-size:10.5px;color:#8A8B92">S 18</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:8px"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:4px;background:oklch(0.74 0.15 295);color:#17151F;font-size:10.5px">↩</span><span style="font-size:10.5px;color:#8A8B92">S default</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:8px"><span style="display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:5px;background:rgba(255,255,255,0.1);font-size:14px;font-weight:500">Space</span><span style="font-size:10.5px;color:#8A8B92">M 24</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:8px"><span style="width:30px;height:30px;border-radius:6px;background:rgba(255,255,255,0.1);box-shadow:inset 0 -1px 0 rgba(255,255,255,0.16);display:flex;align-items:center;justify-content:center;font:500 15px/1 ui-monospace,'SF Mono',Menlo,monospace">q</span><span style="font-size:10.5px;color:#8A8B92">L 30</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:8px"><span style="width:36px;height:36px;border-radius:7px;background:oklch(0.74 0.15 295);color:#17151F;display:flex;align-items:center;justify-content:center;font:500 17px/1 ui-monospace,'SF Mono',Menlo,monospace">o</span><span style="font-size:10.5px;color:#8A8B92">XL 36 next</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="width:820px;box-sizing:border-box;border-radius:12px;padding:28px 30px;background:radial-gradient(120% 100% at 20% 0%,oklch(0.95 0.02 250),oklch(0.87 0.04 285));display:flex;flex-direction:column;gap:28px;color:#1C1C1F">
+      <div style="display:flex;flex-direction:column;gap:12px"><div style="font-size:11.5px;color:#55565C">Practice text states</div>
+        <div style="display:flex;gap:30px;align-items:flex-end;font:400 24px/28px ui-monospace,'SF Mono',Menlo,monospace;white-space:pre">
+          <div style="display:flex;flex-direction:column;gap:10px"><span style="color:#1C1C1F">next</span><span style="font:400 11px -apple-system,sans-serif;color:#6B6C73">upcoming</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px"><span style="color:#6B6C73">done</span><span style="font:400 11px -apple-system,sans-serif;color:#6B6C73">typed</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px"><span style="display:flex"><span style="color:#6B6C73">a</span><span style="position:relative;color:#1C1C1F"><span style="position:absolute;left:-1px;top:1px;bottom:1px;width:2px;border-radius:1px;background:oklch(0.52 0.17 295)"></span>b</span><span style="color:#1C1C1F">c</span></span><span style="font:400 11px -apple-system,sans-serif;color:#6B6C73">caret</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px"><span style="display:flex"><span style="color:#6B6C73">a</span><span style="position:relative;color:oklch(0.55 0.19 25);text-decoration:underline wavy oklch(0.55 0.19 25);text-decoration-thickness:1.5px;text-underline-offset:6px;text-decoration-skip-ink:none"><span style="position:absolute;left:-1px;top:1px;bottom:1px;width:2px;border-radius:1px;background:oklch(0.52 0.17 295)"></span><span style="position:absolute;left:50%;top:-12px;transform:translateX(-50%);font:600 11px/1 -apple-system,sans-serif">q</span>b</span><span style="color:#1C1C1F">c</span></span><span style="font:400 11px -apple-system,sans-serif;color:#6B6C73">waiting on a mistake</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px"><span style="display:flex;color:#6B6C73"><span>a</span><span style="text-decoration:underline dotted oklch(0.55 0.19 25);text-decoration-thickness:1.5px;text-underline-offset:6px">b</span><span>c</span></span><span style="font:400 11px -apple-system,sans-serif;color:#6B6C73">fixed</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px"><span style="color:#A6A7AD">↵</span><span style="font:400 11px -apple-system,sans-serif;color:#6B6C73">line break</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px"><div style="font-size:11.5px;color:#55565C">Key map (finger hints)</div>
+        <dc-import name="Panel" theme="light" part="keymap" text="{{ s.prose }}" caret="{{ 0 }}" hint-size="720px,116px"></dc-import>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px"><div style="font-size:11.5px;color:#55565C">Trend chart</div>
+        <dc-import name="Panel" theme="light" part="trend" hint-size="290px,140px"></dc-import>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tokens" data-screen-label="Design tokens" style="padding:56px;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;flex-direction:column;gap:24px">
+  <div style="display:flex;align-items:baseline;gap:12px"><span style="font:600 12px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1A1A1C;color:#fff;border-radius:5px">◆</span><span style="font-size:24px;font-weight:600;white-space:nowrap">Design tokens</span></div>
+  <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+    <div style="flex:0 1 760px;min-width:560px;background:#fff;border-radius:10px;box-shadow:0 0 0 0.5px rgba(0,0,0,0.1);padding:18px 20px;font-size:12.5px">
+      <div style="display:grid;grid-template-columns:150px 1fr 1fr;gap:0 16px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:11.5px">
+        <span style="font:600 12px -apple-system,sans-serif;color:#6B6B70;padding-bottom:10px">Colour</span><span style="font:600 12px -apple-system,sans-serif;color:#6B6B70">Dark</span><span style="font:600 12px -apple-system,sans-serif;color:#6B6B70">Light</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">surface</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:rgb(24,24,28)"></span>rgba(24,24,28,.72) + blur 48</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:rgb(246,246,248);box-shadow:inset 0 0 0 0.5px rgba(0,0,0,0.2)"></span>rgba(246,246,248,.78) + blur 48</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">ink.primary</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:#ECECEE;box-shadow:inset 0 0 0 0.5px rgba(0,0,0,0.2)"></span>#ECECEE</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:#1C1C1F"></span>#1C1C1F</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">ink.secondary</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:#A3A4AA"></span>#A3A4AA</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:#55565C"></span>#55565C</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">ink.typed</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:#8A8B92"></span>#8A8B92 · 5.2:1</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:#6B6C73"></span>#6B6C73 · 5.0:1</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">ink.faint</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:#5E5F66"></span>#5E5F66 · ↵ and separators only</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:#A6A7AD"></span>#A6A7AD</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">accent</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:oklch(0.74 0.15 295)"></span>oklch(.74 .15 295)</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:oklch(0.52 0.17 295)"></span>oklch(.52 .17 295)</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">accent.zone</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:oklch(0.74 0.15 295 / 0.2)"></span>accent @ 20%</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:oklch(0.52 0.17 295 / 0.14)"></span>accent @ 14%</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">error</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:oklch(0.72 0.17 25)"></span>oklch(.72 .17 25)</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;gap:8px;align-items:center"><span style="width:14px;height:14px;border-radius:3px;background:oklch(0.55 0.19 25)"></span>oklch(.55 .19 25)</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">fill.key</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">white @ 10% (chip) · 7% (map)</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">black @ 7% · 6%</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">hairline</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">white @ 8% · edge 16%</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">black @ 8% · edge 14%</span>
+      </div>
+    </div>
+    <div style="flex:1 1 420px;max-width:560px;display:flex;flex-direction:column;gap:20px">
+      <div style="background:#fff;border-radius:10px;box-shadow:0 0 0 0.5px rgba(0,0,0,0.1);padding:18px 20px;display:grid;grid-template-columns:120px 1fr;gap:0 16px;font-size:12.5px">
+        <span style="font-weight:600;color:#6B6B70;padding-bottom:10px;grid-column:1 / -1;font-size:12px">Type</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);font-family:ui-monospace,Menlo,monospace;font-size:11.5px">practice</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">SF Mono Regular 24 / 28, on a 36 pt row</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);font-family:ui-monospace,Menlo,monospace;font-size:11.5px">label</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">SF Pro Text 11.5, Regular and Medium, tabular digits</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);font-family:ui-monospace,Menlo,monospace;font-size:11.5px">key</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">SF Pro Text 10.5 in chips · SF Mono 8.5 in the map</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);font-family:ui-monospace,Menlo,monospace;font-size:11.5px">error tag</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">SF Pro Text Semibold 11</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);font-family:ui-monospace,Menlo,monospace;font-size:11.5px">result</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">SF Pro Display Semibold 40 / 44 · secondary 17 Medium</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);font-family:ui-monospace,Menlo,monospace;font-size:11.5px">progress</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">SF Pro Display Semibold 20</span>
+      </div>
+      <div style="background:#fff;border-radius:10px;box-shadow:0 0 0 0.5px rgba(0,0,0,0.1);padding:18px 20px;display:grid;grid-template-columns:120px 1fr;gap:0 16px;font-size:12.5px">
+        <span style="font-weight:600;color:#6B6B70;padding-bottom:10px;grid-column:1 / -1;font-size:12px">Spacing and radius (pt)</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);font-family:ui-monospace,Menlo,monospace;font-size:11.5px">space</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">2 · 3 · 4 · 6 · 10 · 14 · 20 · 26 · 40</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);font-family:ui-monospace,Menlo,monospace;font-size:11.5px">panel</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">720 wide · header 32 · body 104 · hints 116 · inset 26</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);font-family:ui-monospace,Menlo,monospace;font-size:11.5px">placement</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">centred, 40 above the screen's bottom edge; capsule 10 above the panel</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);font-family:ui-monospace,Menlo,monospace;font-size:11.5px">radius</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">panel 16 · capsule 10 · L key 6–7 · chip 4 · map key 3 · caret 1</span>
+        <span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08);font-family:ui-monospace,Menlo,monospace;font-size:11.5px">motion</span><span style="padding:7px 0;border-top:0.5px solid rgba(0,0,0,0.08)">summon 180 ms ease-out, rise 8 · hide 120 ms fade · caret blink 1.06 s, only when idle</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="build" data-screen-label="SwiftUI notes" style="padding:56px 56px 80px;display:flex;flex-direction:column;gap:18px;max-width:900px">
+  <div style="display:flex;align-items:baseline;gap:12px"><span style="font:600 12px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1A1A1C;color:#fff;border-radius:5px">▸</span><span style="font-size:24px;font-weight:600;white-space:nowrap">SwiftUI build notes</span></div>
+  <div style="display:flex;flex-direction:column;gap:10px;font-size:13.5px;line-height:1.55;color:#3A3A3E">
+    <div><b style="color:#1A1A1C">Window.</b> NSPanel with <code>.nonactivatingPanel</code> and <code>.fullSizeContentView</code> at level <code>.floating</code>, with <code>canBecomeKey</code> overridden to return true. It takes keystrokes without activating Twiddle, the same way Spotlight does. Collection behaviour: <code>.canJoinAllSpaces</code>, <code>.fullScreenAuxiliary</code>, <code>.transient</code>.</div>
+    <div><b style="color:#1A1A1C">Hide on click-away.</b> Hide on <code>windowDidResignKey</code>, plus a global <code>leftMouseDown</code> monitor while the panel is visible.</div>
+    <div><b style="color:#1A1A1C">Material.</b> NSVisualEffectView using <code>.hudWindow</code> and <code>.behindWindow</code>, state <code>.active</code>, with a tint layer on top (dark: 9% white at 72%, light: 96.5% white at 78%) so text contrast doesn't depend on the wallpaper. Corner radius 16 through <code>maskImage</code>.</div>
+    <div><b style="color:#1A1A1C">Hotkey.</b> Carbon <code>RegisterEventHotKey</code>, or the KeyboardShortcuts package for the recorder. It needs no Accessibility permission, and a failed registration produces the conflict state in 07.</div>
+    <div><b style="color:#1A1A1C">Text.</b> <code>.system(size: 24, design: .monospaced)</code>. Draw it as one Canvas pass of glyph runs per line rather than a view per character. AttributedString has no wavy underline, so draw it as a Path under the glyph. Stats use <code>.monospacedDigit()</code>.</div>
+    <div><b style="color:#1A1A1C">State.</b> Keep one resume point per source (text seed and caret) in UserDefaults, and runs and key stats in SwiftData. Live stats only count active seconds, which ends after a 10 s gap.</div>
+    <div><b style="color:#1A1A1C">App.</b> <code>LSUIElement</code> set, a <code>MenuBarExtra</code> with <code>.menu</code> style, and <code>SMAppService.mainApp</code> for launch at login. Theme follows <code>NSApp.effectiveAppearance</code> unless it is overridden in Settings.</div>
+  </div>
+</section></x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      s: {
+        sprint: 'about people because small think around early still there another might people small about',
+        code: 'if err := run(ctx); err != nil {\n    return fmt.Errorf("sync: %w", err)\n}',
+        terminal: 'git rebase -i HEAD~3 && git push --force-with-lease origin main',
+        prose: 'Two roads diverged in a wood, and I took the one less travelled by, and that has made all the difference.',
+        weak: 'query equip zebra jazzy quick pixel maxim oxide [zip] [quay] re-quiz',
+        words: 'there might still think about small early because around another people'
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
+

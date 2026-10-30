@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><style>body{margin:0;background:#0E0E10;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;-webkit-font-smoothing:antialiased}a{color:#C9B8FF;text-decoration:none}a:hover{color:#FFFFFF}</style></helmet>
+<div style="position:fixed;inset:0;display:flex;flex-direction:column">
+  <div style="height:44px;flex:none;display:flex;align-items:center;gap:16px;padding:0 18px;color:#A3A4AA;font-size:12px;white-space:nowrap;overflow:hidden">
+    <span style="color:#ECECEE;font-weight:600">Twiddle prototype</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-flex;align-items:center;height:18px;padding:0 5px;border-radius:4px;background:rgba(255,255,255,0.1);color:#ECECEE;font-size:11px">⌃⌥Space</span>summon</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-flex;align-items:center;height:18px;padding:0 5px;border-radius:4px;background:rgba(255,255,255,0.1);color:#ECECEE;font-size:11px">esc</span>hide</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-flex;align-items:center;height:18px;padding:0 5px;border-radius:4px;background:rgba(255,255,255,0.1);color:#ECECEE;font-size:11px">hold ⌘</span>commands</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-flex;align-items:center;height:18px;padding:0 5px;border-radius:4px;background:rgba(255,255,255,0.1);color:#ECECEE;font-size:11px">⌘S</span>sprint</span>
+    <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-flex;align-items:center;height:18px;padding:0 5px;border-radius:4px;background:rgba(255,255,255,0.1);color:#ECECEE;font-size:11px">⌘/</span>hints</span>
+    <span>Click any window to hide it, or drag the panel by its header.</span>
+    <span style="margin-left:auto;color:#ECECEE">{{ status }}</span>
+    <sc-if value="{{ hidden }}" hint-placeholder-val="{{ false }}"><button onClick="{{ summon }}" style="height:24px;padding:0 10px;border-radius:6px;border:none;background:oklch(0.55 0.17 295);color:#fff;font:500 12px -apple-system,sans-serif;cursor:pointer">Summon</button></sc-if>
+    <button onClick="{{ reset }}" style="height:24px;padding:0 10px;border-radius:6px;border:0.5px solid rgba(255,255,255,0.2);background:transparent;color:#ECECEE;font:500 12px -apple-system,sans-serif;cursor:pointer">Reset</button>
+    <a href="Twiddle.dc.html">Design board</a>
+  </div>
+  <div style="flex:1;position:relative;overflow:hidden">
+    <div style="position:absolute;left:{{ ox }};top:{{ oy }};width:1512px;height:982px;transform:scale({{ sc }});transform-origin:0 0;border-radius:12px;overflow:hidden;box-shadow:0 0 0 0.5px rgba(255,255,255,0.1),0 30px 80px rgba(0,0,0,0.5)">
+      <dc-import name="Desktop" hint-size="1512px,982px" style="position:absolute;left:0;top:0"></dc-import>
+      <div onMouseDown="{{ clickAway }}" style="position:absolute;left:0;top:37px;right:0;bottom:0"></div>
+      <div onClick="{{ toggle }}" title="Twiddle" style="position:absolute;left:1296px;top:0;width:44px;height:37px;cursor:pointer"></div>
+      <div onDoubleClick="{{ dbl }}" style="position:absolute;left:{{ px }};bottom:{{ pb }};width:720px;opacity:{{ op }};transform:translateY({{ ty }});transition:{{ tr }};pointer-events:{{ pe }}">
+        <dc-import name="Panel" theme="dark" view="{{ P.view }}" text="{{ P.text }}" caret="{{ P.caret }}" pend="{{ P.pend }}" errs="{{ P.errs }}" source="{{ P.source }}" mode="{{ P.mode }}" sprintLen="{{ P.sprintLen }}" clock="{{ P.clock }}" progress="{{ P.progress }}" wpm="{{ P.wpm }}" acc="{{ P.acc }}" idle="{{ P.idle }}" blink="{{ P.blink }}" note="{{ P.note }}" noteSub="{{ P.noteSub }}" hints="{{ P.hints }}" cmd="{{ P.cmd }}" rWpm="{{ P.rWpm }}" rAcc="{{ P.rAcc }}" rMistakes="{{ P.rMistakes }}" rPair="{{ P.rPair }}" rSeconds="{{ P.rSeconds }}" onGrab="{{ grab }}" hint-size="720px,136px"></dc-import>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;idleSeconds&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:3,&quot;max&quot;:30,&quot;step&quot;:1,&quot;unit&quot;:&quot;s&quot;,&quot;default&quot;:10,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Behaviour&quot;},&quot;defaultSource&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Words&quot;,&quot;Code&quot;,&quot;Prose&quot;,&quot;Weak keys&quot;],&quot;default&quot;:&quot;Words&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Behaviour&quot;}}">
+class Component extends DCLogic {
+  K = 'twiddle.proto.v1';
+  WORDS = "the of and to in is you that it was for on are as with they at be this have from or one had by word but not what all were we when your can said there use each which she do how their if will up other about out many then them these so some her would make like into time has look two more write go see number no way could people my than first water been call who now find long down day did get come made may part over new sound take only little work know place year live back give most very after thing our just name good man think say great where help through much before line right too mean old any same tell follow came want show also around form three small set put end does another well large must big even such because turn here why ask went men read need land different home move try kind hand again change off play air away house point page letter answer found study still learn should world high every near add food between own below plant last school keep tree never start city earth eye light thought head under story saw left few while along might close something seem next hard open example begin life always those both paper together got group often run important until side feet car mile night walk white sea began grow took river four carry state once book hear stop without second later miss idea enough eat face watch far really almost let above girl sometimes mountain cut young talk soon list song being leave family early".split(" ");
+  WEAK = "quiz quote squeeze zone puzzle hazard equal quarter frozen maze zero unique liquid size query equip zebra jazzy quick pixel maxim oxide [q] [z] [quiz] re-zip pre-quel x-ray z-axis [zone] quay".split(" ");
+  CODE = ['if err := run(ctx); err != nil {\n    return fmt.Errorf("sync: %w", err)\n}', 'git rebase -i HEAD~3 && git push --force-with-lease origin main', 'for i, item := range items {\n    total += item.Price * float64(item.Qty)\n}', 'kubectl logs -f deploy/sync --since=10m | grep -i "timeout"', 'func (s *Server) Close() error { return s.ln.Close() }', 'const retry = (fn, n = 3) => fn().catch(e => n ? retry(fn, n - 1) : Promise.reject(e));'];
+  PROSE = ['Two roads diverged in a wood, and I took the one less travelled by, and that has made all the difference.', 'It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness.', 'Happy families are all alike; every unhappy family is unhappy in its own way.', 'Call me Ishmael. Some years ago, never mind how long precisely, I thought I would see the world.'];
+  SOURCES = ['Words', 'Code', 'Prose', 'Weak keys'];
+  rng(seed) { let s = seed % 2147483646 + 1; return () => { s = (s * 16807) % 2147483647; return s / 2147483647; }; }
+  gen(source, seed, first) {
+    const r = this.rng(seed); let out = '';
+    if (source === 'Words') { out = first ? 'there might still think about small early because around another people' : this.WORDS[Math.floor(r() * this.WORDS.length)]; while (out.length < 1600) out += ' ' + this.WORDS[Math.floor(r() * this.WORDS.length)]; }
+    else if (source === 'Weak keys') { out = first ? 'query equip zebra jazzy quick pixel maxim oxide [zip] [quay] re-quiz' : this.WEAK[Math.floor(r() * this.WEAK.length)]; while (out.length < 1600) out += ' ' + this.WEAK[Math.floor(r() * this.WEAK.length)]; }
+    else { const L = source === 'Code' ? this.CODE : this.PROSE, sep = source === 'Code' ? '\n' : ' '; let i = first ? 0 : Math.floor(r() * L.length); const parts = []; while (parts.join(sep).length < 1600) { parts.push(L[i % L.length]); i++; } out = parts.join(sep); }
+    return out;
+  }
+  fresh(source, first) { return { t: this.gen(source, Math.floor(Math.random() * 1e6), first), c: 0, errs: [], pend: null }; }
+  init() {
+    const src = {}; this.SOURCES.forEach(s => { src[s] = this.fresh(s, true); });
+    const def = this.props.defaultSource || 'Words';
+    return { src, source: this.SOURCES.includes(def) ? def : 'Words', mode: 'Flow', view: 'intro', shown: true, seen: false, hints: false, cmd: false, idle: false, note: '', noteSub: '', noteUntil: 0,
+      pos: { x: 396, b: 40 }, today: { chars: 3120, correct: 3008, active: 480000 }, last: 0,
+      sp: null, sLen: 30, sState: 'ready', sStart: 0, sLock: 0, sCorrect: 0, sChars: 0, sMistakes: 0, pairs: {}, lastOk: 0, result: null, vw: 1200, vh: 800 };
+  }
+  state = this.init();
+  componentDidMount() {
+    try { const v = JSON.parse(localStorage.getItem(this.K) || 'null'); if (v && v.src) this.setState({ ...v, shown: !v.seen, view: v.seen ? 'text' : 'intro', cmd: false, mode: 'Flow', sp: null }); } catch (e) {}
+    this.kd = e => this.onKey(e);
+    this.ku = e => { if (e.key === 'Meta') { clearTimeout(this.cmdT); if (this.state.cmd) this.setState({ cmd: false }); } };
+    this.bl = () => { clearTimeout(this.cmdT); this.setState({ cmd: false }); };
+    this.rs = () => this.setState({ vw: window.innerWidth, vh: window.innerHeight });
+    this.mm = e => { if (!this.drag) return; const sc = this.scale(), d = this.drag; this.setState({ pos: { x: Math.round(Math.max(0, Math.min(1512 - 720, d.x + (e.clientX - d.mx) / sc))), b: Math.round(Math.max(0, Math.min(982 - 180, d.b - (e.clientY - d.my) / sc))) } }); };
+    this.mu = () => { if (this.drag) { this.drag = null; this.save(); } };
+    window.addEventListener('keydown', this.kd); window.addEventListener('keyup', this.ku); window.addEventListener('blur', this.bl); window.addEventListener('resize', this.rs);
+    window.addEventListener('mousemove', this.mm); window.addEventListener('mouseup', this.mu);
+    this.rs();
+    this.iv = setInterval(() => this.tick(), 200);
+  }
+  componentWillUnmount() { ['keydown', 'keyup', 'blur', 'resize', 'mousemove', 'mouseup'].forEach((ev, i) => window.removeEventListener(ev, [this.kd, this.ku, this.bl, this.rs, this.mm, this.mu][i])); clearInterval(this.iv); clearTimeout(this.cmdT); }
+  save() { const s = this.state; try { localStorage.setItem(this.K, JSON.stringify({ src: s.src, source: s.source, hints: s.hints, pos: s.pos, today: s.today, seen: s.seen, sLen: s.sLen })); } catch (e) {} }
+  scale() { const s = this.state; return Math.min(1, (s.vw - 32) / 1512, (s.vh - 44 - 24) / 982); }
+  idleMs() { return (this.props.idleSeconds ?? 10) * 1000; }
+  tick() {
+    const s = this.state, now = Date.now(), up = {};
+    if (s.last && !s.idle && now - s.last > this.idleMs() && s.sState !== 'running') up.idle = true;
+    if (s.note && s.noteUntil && now > s.noteUntil) { up.note = ''; up.noteSub = ''; up.noteUntil = 0; }
+    if (s.mode === 'Sprint' && s.sState === 'running') {
+      if (now - s.sStart >= s.sLen * 1000) { up.sState = 'done'; up.sLock = now + 600; }
+      else this.forceUpdate();
+    }
+    if (s.mode === 'Sprint' && s.sState === 'done' && s.view === 'text' && now >= s.sLock) { up.view = 'result'; up.result = this.summarise(); }
+    if (Object.keys(up).length) this.setState(up);
+  }
+  summarise() {
+    const s = this.state, mins = s.sLen / 60;
+    let pair = 'br', worst = 0;
+    for (const k in s.pairs) { const [sum, n] = s.pairs[k]; if (n >= 2 && sum / n > worst) { worst = sum / n; pair = k; } }
+    return { wpm: Math.round(s.sCorrect / 5 / mins), acc: s.sChars ? (s.sCorrect / s.sChars * 100).toFixed(1) : '0.0', mistakes: s.sMistakes, pair, seconds: s.sLen + ' s' };
+  }
+  wordStart(st) { let c = st.c; while (c > 0 && st.t[c - 1] !== ' ' && st.t[c - 1] !== '\n') c--; return c; }
+  show() {
+    const s = this.state; if (s.shown) return;
+    const up = { shown: true, cmd: false, idle: false, last: 0 };
+    if (s.mode === 'Sprint') { up.view = 'text'; up.sState = 'ready'; up.sp = this.fresh(s.source); up.result = null; up.note = 'Sprint ' + s.sLen + ' s'; up.noteSub = 'starts on your first key'; up.noteUntil = 0; }
+    else if (s.view !== 'intro') {
+      const st = s.src[s.source], c = this.wordStart(st);
+      const end = st.t.slice(c).search(/[\s]/), word = st.t.slice(c, c + (end < 0 ? 12 : end));
+      up.src = { ...s.src, [s.source]: { ...st, c, pend: null, errs: st.errs.filter(i => i < c) } };
+      up.note = 'Resumed'; up.noteSub = c > 0 ? 'from the start of “' + word + '”' : ''; up.noteUntil = Date.now() + 2000; up.view = 'text';
+    }
+    this.setState(up);
+  }
+  hide() { clearTimeout(this.cmdT); const up = { shown: false, cmd: false }; if (this.state.mode === 'Sprint' && this.state.sState === 'running') up.sState = 'ready'; this.setState(up, () => this.save()); }
+  toggle() { this.state.shown ? this.hide() : this.show(); }
+  setSource(src) {
+    const s = this.state; if (!this.SOURCES.includes(src)) return;
+    if (s.mode === 'Sprint') this.setState({ source: src, sp: this.fresh(src), sState: 'ready', view: 'text', note: 'Sprint ' + s.sLen + ' s', noteSub: 'starts on your first key', noteUntil: 0 });
+    else this.setState({ source: src, view: 'text', note: '', noteSub: '' });
+  }
+  sprint(cycle) {
+    const s = this.state, len = cycle ? ({ 15: 30, 30: 60, 60: 15 })[s.sLen] : s.sLen;
+    this.setState({ mode: 'Sprint', sLen: len, sState: 'ready', sp: this.fresh(s.source), view: 'text', result: null, sCorrect: 0, sChars: 0, sMistakes: 0, pairs: {}, lastOk: 0, note: 'Sprint ' + len + ' s', noteSub: 'starts on your first key', noteUntil: 0 });
+  }
+  flow() { this.setState({ mode: 'Flow', view: 'text', sState: 'ready', note: '', noteSub: '', result: null }); }
+  onKey(e) {
+    const tg = e.target; if (tg && (tg.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(tg.tagName))) return;
+    const s = this.state;
+    if (e.ctrlKey && e.altKey && e.code === 'Space') { e.preventDefault(); this.toggle(); return; }
+    if (e.key === 'Escape') { e.preventDefault(); if (s.shown) this.hide(); return; }
+    if (!s.shown) return;
+    if (e.key === 'Meta') { clearTimeout(this.cmdT); this.cmdT = setTimeout(() => this.setState({ cmd: true }), 300); return; }
+    if (e.metaKey) {
+      const map = { Digit1: () => this.setSource('Words'), Digit2: () => this.setSource('Code'), Digit3: () => this.setSource('Prose'), Digit4: () => this.setSource('Weak keys'), KeyF: () => this.flow(), KeyS: () => this.sprint(s.mode === 'Sprint' && s.view === 'text' && s.sState === 'ready'), Slash: () => this.setState({ hints: !s.hints }, () => this.save()), KeyP: () => this.setState({ view: s.view === 'progress' ? 'text' : 'progress' }),
+        Enter: () => { if (s.mode === 'Flow') this.setState({ src: { ...s.src, [s.source]: this.fresh(s.source) }, view: 'text' }); else this.sprint(false); } };
+      if (map[e.code]) { e.preventDefault(); map[e.code](); }
+      return;
+    }
+    if (e.ctrlKey) return;
+    if (s.view === 'result') { if (e.key === 'Enter') { e.preventDefault(); this.sprint(false); } return; }
+    const printable = e.key.length === 1 || e.key === 'Enter' || e.key === 'Backspace';
+    if (!printable) return;
+    e.preventDefault();
+    if (s.view === 'intro' || s.view === 'progress') { this.setState({ view: 'text', seen: true, note: '', noteSub: '' }, () => this.type(e)); return; }
+    this.type(e);
+  }
+  type(e) {
+    const s = this.state, now = Date.now(), sprint = s.mode === 'Sprint';
+    if (sprint && (s.sState === 'done' || now < s.sLock)) return;
+    const st = sprint ? s.sp : s.src[s.source]; if (!st) return;
+    const gap = s.last && now - s.last < this.idleMs() ? now - s.last : 0;
+    const base = { last: now, idle: false, note: '', noteSub: '', noteUntil: 0, today: { ...s.today, active: s.today.active + gap } };
+    const commit = (nst, extra) => { const up = { ...base, ...extra }; if (sprint) up.sp = nst; else up.src = { ...s.src, [s.source]: nst }; this.setState(up, () => { if (!sprint) this.save(); }); };
+    if (e.key === 'Backspace') { commit({ ...st, pend: null }, {}); return; }
+    const ch = e.key === 'Enter' ? '\n' : e.key, exp = st.t[st.c];
+    if (ch === '\n' && exp !== '\n') return;
+    const extra = {};
+    if (sprint && s.sState === 'ready') { extra.sState = 'running'; extra.sStart = now; extra.sCorrect = 0; extra.sChars = 0; extra.sMistakes = 0; extra.pairs = {}; extra.lastOk = 0; }
+    const sc = extra.sState ? extra : s;
+    if (ch === exp) {
+      let c = st.c + 1; if (ch === '\n') while (st.t[c] === ' ') c++;
+      let t = st.t; if (c > t.length - 300) t = t + (s.source === 'Code' ? '\n' : ' ') + this.gen(s.source, Math.floor(Math.random() * 1e6));
+      extra.today = { ...base.today, chars: s.today.chars + 1, correct: s.today.correct + 1 };
+      if (sprint) {
+        extra.sCorrect = sc.sCorrect + 1; extra.sChars = sc.sChars + 1;
+        const prev = st.t[st.c - 1]; const pairs = { ...(sc.pairs || {}) };
+        if (sc.lastOk && /[a-z]/i.test(prev || '') && /[a-z]/i.test(ch)) { const k = (prev + ch).toLowerCase(), v = pairs[k] || [0, 0]; pairs[k] = [v[0] + now - sc.lastOk, v[1] + 1]; }
+        extra.pairs = pairs; extra.lastOk = now;
+      }
+      commit({ ...st, t, c, pend: null }, extra);
+    } else {
+      extra.today = { ...base.today, chars: s.today.chars + 1 };
+      if (sprint) { extra.sChars = sc.sChars + 1; extra.sMistakes = sc.sMistakes + (st.pend ? 0 : 1); }
+      commit({ ...st, pend: ch, errs: st.errs.includes(st.c) ? st.errs : st.errs.concat(st.c) }, extra);
+    }
+  }
+  renderVals() {
+    const s = this.state, now = Date.now(), sprint = s.mode === 'Sprint';
+    const sc = this.scale(), availH = s.vh - 44;
+    const st = (sprint ? s.sp : s.src[s.source]) || s.src[s.source];
+    const mins = s.today.active / 60000;
+    let wpm = Math.round(s.today.chars / 5 / Math.max(mins, 0.01)), acc = (s.today.correct / Math.max(s.today.chars, 1) * 100).toFixed(1), clock = '', progress = null;
+    if (sprint) {
+      const el = s.sState === 'running' ? Math.min(now - s.sStart, s.sLen * 1000) : s.sState === 'done' ? s.sLen * 1000 : 0, rem = Math.max(0, Math.ceil((s.sLen * 1000 - el) / 1000));
+      clock = Math.floor(rem / 60) + ':' + String(rem % 60).padStart(2, '0'); progress = el / (s.sLen * 1000);
+      if (s.sState === 'ready') { wpm = '–'; acc = '–'; }
+      else { const m = Math.max(el / 60000, 1 / 60); wpm = Math.round(s.sCorrect / 5 / m); acc = s.sChars ? (s.sCorrect / s.sChars * 100).toFixed(1) : '100.0'; }
+    }
+    const r = s.result || {};
+    return {
+      sc, ox: Math.round((s.vw - 1512 * sc) / 2) + 'px', oy: Math.max(0, Math.round((availH - 982 * sc) / 2)) + 'px',
+      px: s.pos.x + 'px', pb: s.pos.b + 'px',
+      op: s.shown ? 1 : 0, ty: s.shown ? '0px' : '8px', pe: s.shown ? 'auto' : 'none',
+      tr: s.shown ? 'opacity 180ms ease-out, transform 180ms ease-out' : 'opacity 120ms ease-in, transform 0ms linear 120ms',
+      hidden: !s.shown, status: s.shown ? '' : 'Hidden. Press ⌃⌥Space or click the menu bar icon.',
+      P: { view: s.view, text: st.t, caret: st.c, pend: st.pend || '', errs: st.errs, source: s.source, mode: s.mode, sprintLen: s.sLen + ' s', clock, progress, wpm, acc,
+        idle: s.idle, blink: s.idle || !!s.note || s.view === 'intro' || (sprint && s.sState === 'ready'), note: s.view === 'intro' ? 'Twiddle' : s.view === 'progress' ? 'Today' : s.note, noteSub: s.view === 'text' ? s.noteSub : '',
+        hints: s.hints, cmd: s.cmd, rWpm: r.wpm, rAcc: r.acc, rMistakes: r.mistakes, rPair: r.pair, rSeconds: r.seconds },
+      summon: () => this.show(), toggle: () => this.toggle(), clickAway: () => { if (this.state.shown) this.hide(); },
+      grab: e => { if (e.button !== 0) return; e.preventDefault(); this.drag = { mx: e.clientX, my: e.clientY, x: this.state.pos.x, b: this.state.pos.b }; },
+      dbl: e => { const r2 = e.currentTarget.getBoundingClientRect(); if ((e.clientY - r2.top) / this.scale() < 32) this.setState({ pos: { x: 396, b: 40 } }, () => this.save()); },
+      reset: () => { try { localStorage.removeItem(this.K); } catch (e) {} const v = this.init(); this.setState({ ...v, vw: window.innerWidth, vh: window.innerHeight }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

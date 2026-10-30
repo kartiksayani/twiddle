@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet><style>@keyframes twBlink{0%,49%{opacity:1}50%,100%{opacity:0}}</style></helmet>
+<div style="position:relative;width:{{ w }};font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Helvetica Neue',sans-serif;-webkit-font-smoothing:antialiased;opacity:{{ op }};transform:translateY({{ ty }})">
+  <sc-if value="{{ cmd }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:50%;bottom:calc(100% + 10px);transform:translateX(-50%);height:32px;display:flex;align-items:center;gap:10px;padding:0 12px;border-radius:10px;background:{{ T.bg }};backdrop-filter:{{ T.blur }};-webkit-backdrop-filter:{{ T.blur }};box-shadow:{{ T.ring }};white-space:nowrap;font-size:11px">
+      <sc-for list="{{ cmdItems }}" as="it" hint-placeholder-count="0">
+        <sc-if value="{{ it.sep }}" hint-placeholder-val="{{ false }}"><span style="width:1px;height:14px;background:{{ T.hair2 }}"></span></sc-if>
+        <sc-if value="{{ it.key }}" hint-placeholder-val="{{ false }}"><span style="display:flex;align-items:center;gap:5px;color:{{ it.color }};font-weight:{{ it.weight }}"><span style="display:inline-flex;align-items:center;height:18px;padding:0 4px;border-radius:4px;background:{{ T.cap }};color:{{ T.ink1 }};font-size:10.5px;font-weight:400">{{ it.k }}</span>{{ it.label }}</span></sc-if>
+      </sc-for>
+    </div>
+  </sc-if>
+  <div style="border-radius:16px;background:{{ T.bg }};backdrop-filter:{{ T.blur }};-webkit-backdrop-filter:{{ T.blur }};box-shadow:{{ T.ring }};overflow:hidden;display:flex;flex-direction:column">
+    <sc-if value="{{ showHeader }}" hint-placeholder-val="{{ true }}">
+      <div onMouseDown="{{ onGrab }}" style="height:32px;flex:none;position:relative;display:flex;align-items:center;justify-content:space-between;padding:2px 26px 0;font-size:11.5px;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:default;user-select:none">
+        <div style="display:flex;align-items:center;gap:6px">
+          <sc-if value="{{ hasNote }}" hint-placeholder-val="{{ false }}"><span style="color:{{ T.acc }};font-weight:500">{{ note }}</span><span style="color:{{ T.ink3 }}">{{ noteSub }}</span></sc-if>
+          <sc-if value="{{ noNote }}" hint-placeholder-val="{{ true }}"><span style="color:{{ T.ink1 }};font-weight:500">{{ modeLabel }}</span><span style="color:{{ T.ink4 }}">·</span><span style="color:{{ T.ink2 }}">{{ source }}</span></sc-if>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;color:{{ T.ink3 }}">
+          <sc-if value="{{ statsOn }}" hint-placeholder-val="{{ true }}">
+            <sc-if value="{{ idle }}" hint-placeholder-val="{{ false }}"><span>Paused</span></sc-if>
+            <sc-if value="{{ hasClock }}" hint-placeholder-val="{{ false }}"><span style="color:{{ T.ink1 }};font-weight:600">{{ clock }}</span></sc-if>
+            <span><span style="color:{{ T.ink1 }};font-weight:500">{{ wpm }}</span> wpm</span>
+            <span><span style="color:{{ T.ink1 }};font-weight:500">{{ acc }}</span>%</span>
+            <span style="display:inline-flex;align-items:center;height:16px;padding:0 4px;border-radius:4px;background:{{ T.cap }};color:{{ T.ink3 }};font-size:10.5px">⌘</span>
+          </sc-if>
+          <sc-if value="{{ hasMsg }}" hint-placeholder-val="{{ false }}"><span>{{ msg }}</span></sc-if>
+        </div>
+        <sc-if value="{{ hasProg }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;left:26px;right:26px;bottom:0;height:2px;border-radius:1px;background:{{ T.hair }}"><div style="height:2px;border-radius:1px;width:{{ progPct }};background:{{ T.acc }}"></div></div>
+        </sc-if>
+      </div>
+    </sc-if>
+    <sc-if value="{{ showText }}" hint-placeholder-val="{{ true }}">
+      <div style="height:104px;box-sizing:border-box;padding:12px 26px 20px;display:flex;flex-direction:column;white-space:pre;font-family:ui-monospace,'SF Mono',SFMono-Regular,Menlo,monospace;font-size:24px;line-height:28px">
+        <sc-for list="{{ lines }}" as="ln" hint-placeholder-count="2">
+          <div style="display:flex;height:36px">
+            <sc-for list="{{ ln.chars }}" as="c" hint-placeholder-count="0">
+              <span style="position:relative;flex:none;display:flex;align-items:center">
+                <sc-if value="{{ c.ok }}" hint-placeholder-val="{{ false }}"><span style="color:{{ T.ink3 }}">{{ c.g }}</span></sc-if>
+                <sc-if value="{{ c.fix }}" hint-placeholder-val="{{ false }}"><span style="color:{{ T.ink3 }};text-decoration:underline dotted {{ T.err }};text-decoration-thickness:1.5px;text-underline-offset:6px">{{ c.g }}</span></sc-if>
+                <sc-if value="{{ c.todo }}" hint-placeholder-val="{{ false }}"><span style="color:{{ T.ink1 }}">{{ c.g }}</span></sc-if>
+                <sc-if value="{{ c.nl }}" hint-placeholder-val="{{ false }}"><span style="color:{{ T.ink4 }}">{{ c.g }}</span></sc-if>
+                <sc-if value="{{ c.err }}" hint-placeholder-val="{{ false }}"><span style="color:{{ T.err }};text-decoration:underline wavy {{ T.err }};text-decoration-thickness:1.5px;text-underline-offset:6px;text-decoration-skip-ink:none">{{ c.g }}</span><span style="position:absolute;left:50%;top:-4px;transform:translateX(-50%);font:600 11px/1 -apple-system,sans-serif;color:{{ T.err }}">{{ c.tag }}</span></sc-if>
+                <sc-if value="{{ c.cur }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:-1px;top:5px;bottom:5px;width:2px;border-radius:1px;background:{{ T.acc }};animation:{{ caretAnim }}"></span></sc-if>
+              </span>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ showResult }}" hint-placeholder-val="{{ false }}">
+      <div style="height:104px;box-sizing:border-box;padding:10px 26px 20px;display:flex;align-items:flex-end;gap:34px;font-variant-numeric:tabular-nums;white-space:nowrap">
+        <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:40px;line-height:44px;font-weight:600;letter-spacing:-0.02em;color:{{ T.ink1 }}">{{ rWpm }}</span><span style="font-size:14px;color:{{ T.ink2 }}">wpm</span></div>
+        <div style="display:flex;flex-direction:column;gap:4px;padding-bottom:4px"><span style="font-size:17px;font-weight:500;color:{{ T.ink1 }}">{{ rAcc }}%</span><span style="font-size:11.5px;color:{{ T.ink3 }}">accuracy</span></div>
+        <div style="display:flex;flex-direction:column;gap:4px;padding-bottom:4px"><span style="font-size:17px;font-weight:500;color:{{ T.ink1 }}">{{ rMistakes }}</span><span style="font-size:11.5px;color:{{ T.ink3 }}">mistakes</span></div>
+        <div style="display:flex;flex-direction:column;gap:4px;padding-bottom:4px"><span style="font:500 17px/20px ui-monospace,'SF Mono',Menlo,monospace;color:{{ T.ink1 }}">{{ rPair }}</span><span style="font-size:11.5px;color:{{ T.ink3 }}">slowest pair</span></div>
+        <div style="margin-left:auto;display:flex;flex-direction:column;gap:5px;padding-bottom:2px;font-size:11.5px;color:{{ T.ink2 }}">
+          <span style="display:flex;align-items:center;gap:7px"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:4px;background:{{ T.acc }};color:{{ T.accInk }};font-size:10.5px">↩</span><span style="color:{{ T.ink1 }}">Again, {{ rSeconds }}</span></span>
+          <span style="display:flex;align-items:center;gap:7px"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:4px;background:{{ T.cap }};color:{{ T.ink1 }};font-size:10.5px">⌘F</span>Back to Flow</span>
+          <span style="display:flex;align-items:center;gap:7px"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:18px;padding:0 4px;box-sizing:border-box;border-radius:4px;background:{{ T.cap }};color:{{ T.ink1 }};font-size:10.5px">esc</span>Hide</span>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ showProgress }}" hint-placeholder-val="{{ false }}">
+      <div style="box-sizing:border-box;padding:{{ progPad }};display:flex;gap:40px;font-variant-numeric:tabular-nums;white-space:nowrap">
+        <sc-if value="{{ pCols }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:10px;flex:none">
+            <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:20px;font-weight:600;color:{{ T.ink1 }};min-width:48px">{{ tMin }}</span><span style="font-size:11.5px;color:{{ T.ink3 }}">minutes practised</span></div>
+            <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:20px;font-weight:600;color:{{ T.ink1 }};min-width:48px">{{ tAvg }}</span><span style="font-size:11.5px;color:{{ T.ink3 }}">average wpm</span></div>
+            <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:20px;font-weight:600;color:{{ T.ink1 }};min-width:48px">{{ tBest }}</span><span style="font-size:11.5px;color:{{ T.ink3 }}">best wpm</span></div>
+          </div>
+        </sc-if>
+        <div style="display:flex;flex-direction:column;gap:8px;flex:none">
+          <div style="display:flex;justify-content:space-between;font-size:11.5px;color:{{ T.ink3 }}"><span>WPM, last 20 runs</span><span>best {{ tBest }}</span></div>
+          <svg width="250" height="70" viewBox="0 0 250 70" style="display:block;overflow:visible">
+            <line x1="0" y1="{{ avgY }}" x2="250" y2="{{ avgY }}" stroke="{{ T.hair2 }}" stroke-width="1" stroke-dasharray="2 3"></line>
+            <polyline points="{{ pts }}" fill="none" stroke="{{ T.acc }}" stroke-width="1.75" stroke-linejoin="round" stroke-linecap="round"></polyline>
+            <circle cx="{{ bestX }}" cy="{{ bestY }}" r="3" fill="{{ T.acc }}"></circle>
+            <circle cx="{{ lastX }}" cy="{{ lastY }}" r="3.5" fill="{{ T.solid }}" stroke="{{ T.acc }}" stroke-width="1.75"></circle>
+          </svg>
+          <div style="display:flex;justify-content:space-between;font-size:10.5px;color:{{ T.ink3 }}"><span>Tue</span><span>dashed: today's average</span><span>now</span></div>
+        </div>
+        <sc-if value="{{ pCols }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:8px;flex:none">
+            <div style="font-size:11.5px;color:{{ T.ink3 }}">Weakest keys</div>
+            <div style="display:flex;gap:8px">
+              <sc-for list="{{ weak }}" as="k" hint-placeholder-count="5">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:5px">
+                  <div style="width:30px;height:30px;border-radius:6px;background:{{ T.cap }};box-shadow:inset 0 -1px 0 {{ T.hair2 }};display:flex;align-items:center;justify-content:center;font:500 15px/1 ui-monospace,'SF Mono',Menlo,monospace;color:{{ T.ink1 }}">{{ k.k }}</div>
+                  <span style="font-size:10.5px;color:{{ T.ink3 }}">{{ k.ms }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-size:10.5px;color:{{ T.ink3 }}">average ms per key</div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+    <sc-if value="{{ showIntro }}" hint-placeholder-val="{{ false }}">
+      <div style="height:104px;box-sizing:border-box;padding:8px 26px 20px;display:flex;flex-direction:column;justify-content:flex-end;gap:10px">
+        <div style="display:flex;align-items:center;gap:6px;font-size:19px;line-height:26px;font-weight:500;color:{{ T.ink1 }};flex-wrap:wrap">Press<span style="display:inline-flex;gap:3px;margin:0 3px"><span style="display:inline-flex;align-items:center;height:24px;padding:0 7px;border-radius:5px;background:{{ T.cap }};font-size:14px;font-weight:500">⌃</span><span style="display:inline-flex;align-items:center;height:24px;padding:0 7px;border-radius:5px;background:{{ T.cap }};font-size:14px;font-weight:500">⌥</span><span style="display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:5px;background:{{ T.cap }};font-size:14px;font-weight:500">Space</span></span>anywhere to practise.</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:13px;color:{{ T.ink2 }}">
+          <span style="display:flex;align-items:center;gap:6px"><span style="display:inline-flex;align-items:center;height:18px;padding:0 5px;border-radius:4px;background:{{ T.cap }};color:{{ T.ink1 }};font-size:11px">esc</span>hides it. Next time it picks up where you left off.</span>
+          <span style="color:{{ T.acc }};font-weight:500">Start typing</span>
+        </div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ showHints }}" hint-placeholder-val="{{ false }}">
+      <div style="height:116px;box-sizing:border-box;border-top:{{ hintsBorder }};padding:14px 26px;display:flex;align-items:center;gap:30px">
+        <div style="display:flex;flex-direction:column;gap:3px;flex:none">
+          <sc-for list="{{ kb }}" as="row" hint-placeholder-count="5">
+            <div style="display:flex;gap:3px;justify-content:{{ row.just }}">
+              <sc-for list="{{ row.keys }}" as="k" hint-placeholder-count="0">
+                <div style="width:{{ k.w }};height:15px;flex:none;border-radius:3px;display:flex;align-items:center;justify-content:center;font:500 8.5px/1 ui-monospace,'SF Mono',Menlo,monospace;background:{{ k.bg }};color:{{ k.ink }};box-shadow:{{ k.ring }}">{{ k.label }}</div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+        <div style="flex:1;display:flex;align-items:center;gap:14px;min-width:0">
+          <div style="width:36px;height:36px;flex:none;border-radius:7px;background:{{ T.acc }};color:{{ T.accInk }};display:flex;align-items:center;justify-content:center;font:500 17px/1 ui-monospace,'SF Mono',Menlo,monospace">{{ nextLabel }}</div>
+          <div style="display:flex;flex-direction:column;gap:4px;min-width:0">
+            <div style="font-size:13px;font-weight:500;color:{{ T.ink1 }}">{{ fingerName }}</div>
+            <div style="font-size:11.5px;color:{{ T.ink3 }}">{{ fingerSub }}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:3px;flex:none;height:28px">
+          <sc-for list="{{ hand }}" as="f" hint-placeholder-count="10"><div style="width:7px;height:{{ f.h }};margin-left:{{ f.ml }};border-radius:3.5px;background:{{ f.bg }}"></div></sc-for>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:760,&quot;height&quot;:320},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;'dark'|'light'&quot;},&quot;view&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;text&quot;,&quot;result&quot;,&quot;progress&quot;,&quot;intro&quot;],&quot;default&quot;:&quot;text&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hints&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;cmd&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;text&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;there might still think about small early because around another people&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;caret&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;},&quot;pend&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;errs&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;source&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Words&quot;,&quot;Code&quot;,&quot;Prose&quot;,&quot;Weak keys&quot;],&quot;default&quot;:&quot;Words&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Flow&quot;,&quot;Sprint&quot;],&quot;default&quot;:&quot;Flow&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;part&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;keymap&quot;,&quot;trend&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onGrab&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(e) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  D = { bg: 'rgba(24,24,28,0.72)', solid: '#1F1F23', blur: 'blur(48px) saturate(1.5)', ring: 'inset 0 0 0 0.5px rgba(255,255,255,0.16), 0 0 0 0.5px rgba(0,0,0,0.5), 0 22px 56px rgba(0,0,0,0.5)', ink1: '#ECECEE', ink2: '#A3A4AA', ink3: '#8A8B92', ink4: '#5E5F66', hair: 'rgba(255,255,255,0.08)', hair2: 'rgba(255,255,255,0.16)', key: 'rgba(255,255,255,0.07)', cap: 'rgba(255,255,255,0.1)', acc: 'oklch(0.74 0.15 295)', accInk: '#17151F', zone: 'oklch(0.74 0.15 295 / 0.2)', err: 'oklch(0.72 0.17 25)' };
+  L = { bg: 'rgba(246,246,248,0.78)', solid: '#F6F6F8', blur: 'blur(48px) saturate(1.8)', ring: 'inset 0 0 0 0.5px rgba(255,255,255,0.7), 0 0 0 0.5px rgba(0,0,0,0.14), 0 22px 56px rgba(0,0,0,0.18)', ink1: '#1C1C1F', ink2: '#55565C', ink3: '#6B6C73', ink4: '#A6A7AD', hair: 'rgba(0,0,0,0.08)', hair2: 'rgba(0,0,0,0.16)', key: 'rgba(0,0,0,0.06)', cap: 'rgba(0,0,0,0.07)', acc: 'oklch(0.52 0.17 295)', accInk: '#FFFFFF', zone: 'oklch(0.52 0.17 295 / 0.14)', err: 'oklch(0.55 0.19 25)' };
+  F = { L5: "`1qaz", L4: "2wsx", L3: "3edc", L2: "45rtfgvb", R2: "67yuhjnm", R3: "8ik,", R4: "9ol.", R5: "0-=p[]\\;'/" };
+  NAMES = { L5: 'Left pinky', L4: 'Left ring', L3: 'Left middle', L2: 'Left index', T: 'Either thumb', R2: 'Right index', R3: 'Right middle', R4: 'Right ring', R5: 'Right pinky' };
+  HOME = { L5: 'a', L4: 's', L3: 'd', L2: 'f', R2: 'j', R3: 'k', R4: 'l', R5: ';' };
+  SH = { '~': '`', '!': '1', '@': '2', '#': '3', '$': '4', '%': '5', '^': '6', '&': '7', '*': '8', '(': '9', ')': '0', '_': '-', '+': '=', '{': '[', '}': ']', '|': '\\', ':': ';', '"': "'", '<': ',', '>': '.', '?': '/' };
+  ROWS = [
+    [..."`1234567890-="].map(k => ({ id: k })).concat([{ id: 'bksp', label: '⌫', w: 1.5, f: 'R5' }]),
+    [{ id: 'tab', label: '⇥', w: 1.5, f: 'L5' }].concat([..."qwertyuiop[]\\"].map(k => ({ id: k }))),
+    [{ id: 'caps', label: '⇪', w: 1.75, f: 'L5' }].concat([..."asdfghjkl;'"].map(k => ({ id: k })), [{ id: 'ret', label: '↩', w: 1.75, f: 'R5' }]),
+    [{ id: 'shiftL', label: '⇧', w: 2.25, f: 'L5' }].concat([..."zxcvbnm,./"].map(k => ({ id: k })), [{ id: 'shiftR', label: '⇧', w: 2.25, f: 'R5' }]),
+    [{ id: 'space', label: '', w: 6, f: 'T' }]
+  ];
+  fingerOf(k) { for (const f in this.F) if (this.F[f].includes(k)) return f; return null; }
+  resolve(ch) {
+    if (ch == null) return null;
+    if (ch === ' ') return { key: 'space', f: 'T', label: '␣', shift: null };
+    if (ch === '\n') return { key: 'ret', f: 'R5', label: '↩', shift: null };
+    let k = ch, shift = false;
+    if (this.SH[ch]) { k = this.SH[ch]; shift = true; }
+    else if (ch !== ch.toLowerCase()) { k = ch.toLowerCase(); shift = true; }
+    const f = this.fingerOf(k); if (!f) return null;
+    return { key: k, f, label: ch, shift: shift ? (f[0] === 'L' ? 'shiftR' : 'shiftL') : null };
+  }
+  layout(t, M) {
+    const out = []; let i = 0;
+    while (i < t.length) {
+      const nl = t.indexOf('\n', i), hardEnd = nl < 0 ? t.length : nl + 1;
+      let ls = i, j = i;
+      while (j < hardEnd) {
+        const sp = t.indexOf(' ', j), we = (sp < 0 || sp >= hardEnd) ? hardEnd : sp + 1;
+        if (we - ls - 1 > M && j > ls) { out.push([ls, j]); ls = j; }
+        j = we;
+      }
+      out.push([ls, hardEnd]); i = hardEnd;
+    }
+    return out;
+  }
+  renderVals() {
+    const p = this.props, T = p.theme === 'light' ? this.L : this.D;
+    const view = p.view || 'text', part = p.part || '';
+    const t = p.text ?? 'there might still think about small early because around another people';
+    const c = Number(p.caret ?? 0), pend = p.pend || null;
+    const errs = new Set((Array.isArray(p.errs) ? p.errs : String(p.errs ?? '').split(',')).filter(x => x !== '').map(Number));
+    const fade = p.fade ?? 1;
+    const v = { T, w: part === 'trend' ? 'auto' : '720px', op: fade, ty: ((1 - fade) * 8).toFixed(1) + 'px' };
+    const mode = p.mode || 'Flow', source = p.source || 'Words', hints = !!p.hints;
+    v.cmd = !!p.cmd && !part;
+    v.cmdItems = [
+      { key: true, k: '⌘1', label: 'Words', on: source === 'Words' }, { key: true, k: '⌘2', label: 'Code', on: source === 'Code' }, { key: true, k: '⌘3', label: 'Prose', on: source === 'Prose' }, { key: true, k: '⌘4', label: 'Weak keys', on: source === 'Weak keys' },
+      { sep: true }, { key: true, k: '⌘F', label: 'Flow', on: mode === 'Flow' }, { key: true, k: '⌘S', label: 'Sprint', on: mode === 'Sprint' },
+      { sep: true }, { key: true, k: '⌘/', label: 'Hints', on: hints }, { key: true, k: '⌘P', label: 'Progress', on: view === 'progress' }, { key: true, k: '⌘,', label: 'Settings', on: false }
+    ].map(it => ({ ...it, sep: !!it.sep, key: !!it.key, color: it.on ? T.ink1 : T.ink2, weight: it.on ? 600 : 400 }));
+    v.showHeader = !part;
+    v.note = p.note || ''; v.noteSub = p.noteSub || ''; v.hasNote = !!p.note; v.noNote = !p.note;
+    v.modeLabel = mode === 'Sprint' ? 'Sprint ' + (p.sprintLen || '30 s') : mode; v.source = source;
+    v.statsOn = view === 'text'; v.idle = !!p.idle; v.clock = p.clock || ''; v.hasClock = !!p.clock;
+    v.wpm = p.wpm ?? 78; v.acc = p.acc ?? '96.4';
+    v.msg = view === 'result' ? 'Finished' : view === 'progress' ? 'Type to go back' : view === 'intro' ? 'Change the hotkey in Settings, ⌘,' : '';
+    v.hasMsg = !!v.msg;
+    v.hasProg = p.progress != null && view === 'text'; v.progPct = Math.round((p.progress || 0) * 100) + '%';
+    v.caretAnim = p.blink ? 'twBlink 1.06s steps(1) infinite' : 'none';
+    v.showText = view === 'text' && !part;
+    if (v.showText) {
+      const L = this.layout(t, p.maxChars || 46);
+      let li = L.findIndex(([a, b]) => c >= a && c < b); if (li < 0) li = L.length - 1;
+      const n = p.lines || 2; v.lines = [];
+      for (let k = li; k < li + n && k < L.length; k++) {
+        const [a, b] = L[k], chars = [];
+        for (let i = a; i < b; i++) {
+          const tc = t[i], isNl = tc === '\n';
+          const o = { g: isNl ? '↵' : tc === ' ' ? '\u00A0' : tc, ok: false, fix: false, todo: false, nl: false, err: false, cur: i === c, tag: '' };
+          if (i === c && pend) { o.err = true; o.tag = pend === ' ' ? '␣' : pend; if (tc === ' ') o.g = '·'; }
+          else if (isNl) o.nl = true;
+          else if (i < c) { if (errs.has(i)) o.fix = true; else o.ok = true; }
+          else o.todo = true;
+          chars.push(o);
+        }
+        v.lines.push({ chars });
+      }
+    }
+    v.showResult = view === 'result' && !part;
+    v.rWpm = p.rWpm ?? 84; v.rAcc = p.rAcc ?? '97.1'; v.rMistakes = p.rMistakes ?? 3; v.rPair = p.rPair ?? 'br'; v.rSeconds = p.rSeconds ?? '30 s';
+    v.showProgress = (view === 'progress' && !part) || part === 'trend';
+    v.pCols = part !== 'trend'; v.progPad = part === 'trend' ? '16px 20px' : '18px 26px 22px';
+    v.tMin = p.tMin ?? 11; v.tAvg = p.tAvg ?? 76; v.tBest = p.tBest ?? 91;
+    const runs = [71, 74, 69, 76, 73, 78, 75, 80, 72, 77, 79, 74, 81, 76, 78, 91, 77, 80, 76, 84], lo = 64, hi = 94, W = 250, H = 70;
+    const X = i => +(i * W / (runs.length - 1)).toFixed(1), Y = val => +(H - (val - lo) / (hi - lo) * H).toFixed(1);
+    v.pts = runs.map((r, i) => X(i) + ',' + Y(r)).join(' ');
+    const bi = runs.indexOf(Math.max(...runs)); v.bestX = X(bi); v.bestY = Y(runs[bi]);
+    v.lastX = X(runs.length - 1); v.lastY = Y(runs[runs.length - 1]); v.avgY = Y(v.tAvg);
+    v.weak = [{ k: 'q', ms: 312 }, { k: 'z', ms: 298 }, { k: '[', ms: 341 }, { k: ']', ms: 336 }, { k: '-', ms: 287 }];
+    v.showIntro = view === 'intro' && !part;
+    v.showHints = (hints && view === 'text' && !part) || part === 'keymap';
+    v.hintsBorder = part ? 'none' : '0.5px solid ' + T.hair;
+    if (v.showHints) {
+      const nx = this.resolve(pend ? t[c] : t[c]) || { key: null, f: null, label: '', shift: null };
+      const U = 17, G = 3;
+      v.kb = this.ROWS.map((row, ri) => ({
+        just: ri === 4 ? 'center' : 'flex-start',
+        keys: row.map(k => {
+          const f = k.f || this.fingerOf(k.id), wu = k.w || 1;
+          const isNext = k.id === nx.key, isShift = k.id === nx.shift, inZone = f && f === nx.f;
+          return { label: k.label ?? k.id, w: (wu * U + (wu - 1) * G).toFixed(1) + 'px',
+            bg: isNext ? T.acc : inZone ? T.zone : T.key, ink: isNext ? T.accInk : (inZone || isShift) ? T.ink1 : T.ink3,
+            ring: isShift ? 'inset 0 0 0 1px ' + T.acc : 'none' };
+        })
+      }));
+      v.nextLabel = nx.label === ' ' ? '␣' : nx.label;
+      v.fingerName = nx.f ? this.NAMES[nx.f] + (nx.f === 'T' ? '' : ' finger') : '';
+      const home = this.HOME[nx.f];
+      v.fingerSub = nx.shift ? (nx.shift === 'shiftR' ? 'Hold ⇧ with your right pinky' : 'Hold ⇧ with your left pinky') : nx.f === 'T' ? 'Space bar' : nx.key === 'ret' ? 'Return, reach from ;' : nx.key === home ? 'Home row key' : 'Reach from ' + home;
+      const order = ['L5', 'L4', 'L3', 'L2', 'LT', 'RT', 'R2', 'R3', 'R4', 'R5'], hs = [15, 21, 24, 21, 11, 11, 21, 24, 21, 15];
+      const shiftF = nx.shift === 'shiftR' ? 'R5' : nx.shift === 'shiftL' ? 'L5' : null;
+      v.hand = order.map((f, i) => ({ h: hs[i] + 'px', ml: i === 5 ? '9px' : '0px', bg: (f === nx.f || (nx.f === 'T' && (f === 'LT' || f === 'RT'))) ? T.acc : f === shiftF ? T.zone : T.key }));
+    }
+    v.onGrab = p.onGrab || null;
+    return v;
+  }
+}
+</script>
+</body>
+</html>

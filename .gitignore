@@ -1,0 +1,6 @@
+.build/
+.swiftpm/
+*.app
+.DS_Store
+# Claude Design runtime: generated, not ours to publish
+designs/support.js
