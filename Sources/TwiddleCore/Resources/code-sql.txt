@@ -1,0 +1,70 @@
+SELECT name, count FROM colors ORDER BY name;
+
+SELECT COUNT(*) FROM tasks WHERE done = false;
+
+SELECT DISTINCT region FROM stores;
+
+SELECT name FROM users WHERE name LIKE 'a%';
+
+SELECT id FROM tasks WHERE score BETWEEN 10 AND 20;
+
+SELECT name FROM users WHERE team_id IS NULL;
+
+SELECT name FROM users WHERE id IN (2, 4, 8);
+
+SELECT region, SUM(total)
+FROM orders
+GROUP BY region;
+
+SELECT team_id, COUNT(*)
+FROM users
+GROUP BY team_id
+HAVING COUNT(*) > 5;
+
+SELECT u.name, t.title
+FROM users AS u
+JOIN teams AS t ON t.id = u.team_id;
+
+SELECT u.name, t.title
+FROM users AS u
+LEFT JOIN teams AS t ON t.id = u.team_id;
+
+SELECT name FROM colors ORDER BY count DESC LIMIT 5;
+
+INSERT INTO colors (name, count) VALUES ('teal', 4);
+
+UPDATE tasks SET done = true WHERE id = 12;
+
+DELETE FROM tasks WHERE done = true;
+
+CREATE TABLE labels (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(40) NOT NULL
+);
+
+ALTER TABLE labels ADD COLUMN active BOOLEAN;
+
+CREATE INDEX tasks_owner_idx ON tasks (owner_id);
+
+SELECT COALESCE(nickname, name) FROM users;
+
+SELECT LOWER(name), LENGTH(name) FROM labels;
+
+SELECT CASE WHEN score > 10 THEN 'high'
+    ELSE 'low' END AS band
+FROM tasks;
+
+WITH recent AS (
+    SELECT * FROM tasks WHERE id > 100
+)
+SELECT COUNT(*) FROM recent;
+
+SELECT name FROM users
+UNION
+SELECT name FROM guests;
+
+SELECT owner_id, MAX(score) FROM tasks
+GROUP BY owner_id;
+
+SELECT id, ROW_NUMBER() OVER (ORDER BY score DESC)
+FROM tasks;

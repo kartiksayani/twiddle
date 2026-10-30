@@ -1,0 +1,77 @@
+package practice
+
+import "fmt"
+
+func square(n int) int {
+    return n * n
+}
+
+func greeting(name string) string {
+    return "Hello, " + name
+}
+
+var queue = make(chan string, 8)
+
+message := fmt.Sprintf("item %d", 42)
+
+names := []string{"ash", "birch", "cedar"}
+
+for index, name := range names {
+    fmt.Println(index, name)
+}
+
+if len(names) == 0 {
+    panic("empty names")
+}
+
+counts := map[string]int{"red": 3, "blue": 7}
+
+value, found := counts["green"]
+
+if err := run(ctx); err != nil {
+    return fmt.Errorf("sync: %w", err)
+}
+
+select {
+case queue <- "ready":
+    fmt.Println("queued")
+default:
+    fmt.Println("busy")
+}
+
+func enabled(flag bool) bool {
+    return !flag
+}
+
+const limit = 100
+
+var total int64 = 512
+
+for total > 0 {
+    total /= 2
+}
+
+switch value {
+case 0:
+    fmt.Println("zero")
+default:
+    fmt.Println(value)
+}
+
+copyOfNames := append([]string{}, names...)
+
+fmt.Printf("%s: %v", message, found)
+
+func clamp(n, low, high int) int {
+    return min(max(n, low), high)
+}
+
+keys := make([]string, 0, len(counts))
+
+for key := range counts {
+    keys = append(keys, key)
+}
+
+defer file.Close()
+
+next := time.Now().Add(5 * time.Second)

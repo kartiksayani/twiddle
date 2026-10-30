@@ -1,0 +1,60 @@
+#!/bin/sh
+
+set -eu
+
+practice_dir="./practice"
+
+mkdir -p "$practice_dir"
+
+printf '%s\n' 'ready to type'
+
+for color in red blue green; do
+    printf '%s\n' "$color"
+done
+
+if [ -d "$practice_dir" ]; then
+    echo 'directory ready'
+fi
+
+count=0
+
+while [ "$count" -lt 3 ]; do
+    count=$((count + 1))
+done
+
+case "$count" in
+    3) echo 'complete' ;;
+    *) echo 'continue' ;;
+esac
+
+find "$practice_dir" -type f -name '*.txt'
+
+sort -u words.txt > unique.txt
+
+wc -l < unique.txt
+
+head -n 5 unique.txt
+
+git rebase -i HEAD~3 && git push --force-with-lease origin main
+
+tr 'a-z' 'A-Z' < words.txt
+
+cut -d ':' -f 1 records.txt
+
+printf '%s\n' "${practice_dir}/state.json"
+
+test -s unique.txt && echo 'words found'
+
+echo "typed $count rounds"
+
+git status --short
+
+git diff --stat HEAD~1
+
+kubectl get pods -n practice
+
+kubectl logs deployment/worker --tail=20
+
+docker build -t practice:local .
+
+docker run --rm practice:local

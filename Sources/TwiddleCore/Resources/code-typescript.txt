@@ -1,0 +1,65 @@
+const title: string = "Practice";
+
+let attempts = 0;
+
+type Point = {
+    x: number;
+    y: number;
+};
+
+const origin: Point = { x: 0, y: 0 };
+
+function add(a: number, b: number): number {
+    return a + b;
+}
+
+const doubled = [1, 2, 3].map(value => value * 2);
+
+const positive = doubled.filter(value => value > 0);
+
+const sum = positive.reduce((result, value) => result + value, 0);
+
+const labels = new Map<string, number>();
+
+labels.set("north", 10);
+
+const caption = `Total: ${sum}`;
+
+if (attempts < 5) {
+    attempts += 1;
+}
+
+for (const item of positive) {
+    console.log(item);
+}
+
+const options = {
+    width: 46,
+    hints: false,
+} as const;
+
+const { width, hints } = options;
+
+const path = ["home", "practice"].join("/");
+
+const missing = labels.get("west") ?? 0;
+
+const rounded = Math.round(sum / 3);
+
+export const isReady = (count: number): boolean => {
+    return count >= 20;
+};
+
+console.log(caption, width, hints, path, missing, rounded);
+
+type Status = "idle" | "running" | "done";
+
+const sorted = [...positive].sort((a, b) => a - b);
+
+const unique = new Set(["red", "red", "blue"]);
+
+function first<T>(items: T[]): T | undefined {
+    return items[0];
+}
+
+const valid = Number.isFinite(sum) && sum >= 0;

@@ -13,18 +13,25 @@ public struct CommandCapsuleView: View {
 
   public var body: some View {
     let theme = Theme(scheme)
-    HStack(spacing: Theme.capsuleGap) {
-      item("⌘1", "Words", selected: model.source == .words)
-      item("⌘2", "Code", selected: model.source == .code)
-      item("⌘3", "Prose", selected: model.source == .prose)
-      item("⌘4", "Weak keys", selected: model.source == .weakKeys)
-      separator
-      item("⌘F", "Flow", selected: model.mode == .flow)
-      item("⌘S", "Sprint", selected: model.mode == .sprint)
-      separator
-      item("⌘/", "Hints", selected: model.hintsOn)
-      item("⌘P", "Progress", selected: model.view == .progress)
-      item("⌘,", "Settings")
+    VStack(alignment: .leading, spacing: 0) {
+      HStack(spacing: Theme.capsuleGap) {
+        item("⌘1", "Words", selected: model.source == .words)
+        item("⌘2", "Code", selected: model.source == .code)
+        item("⌘3", "Prose", selected: model.source == .prose)
+        item("⌘4", "Weak keys", selected: model.source == .weakKeys)
+        item("⌘5", "Symbols", selected: model.source == .symbols)
+        Spacer().frame(width: Theme.capsuleReservedSourceWidth)
+      }
+      .frame(height: Theme.capsuleHeight / 2)
+      HStack(spacing: Theme.capsuleGap) {
+        item("⌘F", "Flow", selected: model.mode == .flow)
+        item("⌘S", "Sprint", selected: model.mode == .sprint)
+        separator
+        item("⌘/", "Hints", selected: model.hintsOn)
+        item("⌘P", "Progress", selected: model.view == .progress)
+        item("⌘,", "Settings")
+      }
+      .frame(height: Theme.capsuleHeight / 2)
     }
     .fixedSize()
     .padding(.horizontal, Theme.capsuleInset)

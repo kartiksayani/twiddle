@@ -4,18 +4,19 @@ The current state only. Replace this page at each checkpoint. Keep it under 40 l
 
 **Updated:** 2026-10-31
 **Main:** v1 complete, M0 to M7 merged
-**Open PRs:** none
-**Active:** none
+**Active:** v1.1 in `SPEC.md`. Symbols, code packs and the two-row capsule are in review.
 **Unpushed work:** none
 
 ## Next steps
 
-1. Owner runs `CHECKLIST.md`.
-2. Launch at login is unverified. Its toggle was clicked on and off in testing, but the result couldn't be read back.
+1. Stats work from M10.
+2. Demo GIF, README, checklist and version 0.2.0 from M11.
+3. Owner runs `CHECKLIST.md`.
 
 ## Blockers
 
-None.
+- M8 (`twiddle://done`) and paste to practise wait on Kartik's decision about `security-guidance`. The Seezo server is disabled for this project, and Codex stops on it.
+- On-device drills wait on Apple Intelligence being turned on.
 
 ## Known flakes
 

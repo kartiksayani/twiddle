@@ -17,7 +17,7 @@ public struct PanelView: View {
       if model.view == .text {
         HeaderView(
           counters: model.headerCounters, resumedWord: model.resumedWord,
-          paused: model.mode == .flow && model.isPaused, source: model.source.label,
+          paused: model.mode == .flow && model.isPaused, source: model.sourceLabel,
           modeLabel: model.mode == .flow ? "Flow" : "Sprint \(model.sprintLength) s",
           note: model.contentNote, blank: model.mode == .sprint && model.sprintState == .ready,
           clock: model.mode == .sprint

@@ -212,7 +212,7 @@ final class PanelController: NSObject, NSWindowDelegate {
       let screen = panel.screen ?? NSScreen.main
     else { return }
     let size = CGSize(width: Theme.panelSize.width, height: model.panelHeight)
-    let visible = screen.visibleFrame
+    let visible = practiceVisibleFrame(on: screen)
     let placement = PanelLayout.clamp(
       .init(x: panel.frame.minX, y: panel.frame.minY, width: size.width, height: size.height),
       to: .init(visible))
@@ -231,7 +231,7 @@ final class PanelController: NSObject, NSWindowDelegate {
     model.summon()
     let mouse = NSEvent.mouseLocation
     if let screen = NSScreen.screens.first(where: { $0.frame.contains(mouse) }) ?? NSScreen.main {
-      let visible = screen.visibleFrame
+      let visible = practiceVisibleFrame(on: screen)
       let placement = PanelLayout.position(
         width: Theme.panelSize.width, height: model.panelHeight,
         in: .init(visible),
@@ -272,7 +272,7 @@ final class PanelController: NSObject, NSWindowDelegate {
       let screen = NSScreen.screens.first(where: { $0.frame.contains(NSEvent.mouseLocation) })
         ?? panel.screen
     else { return }
-    let visible = screen.visibleFrame
+    let visible = practiceVisibleFrame(on: screen)
     let frame = PanelLayout.clamp(
       .init(
         x: dragOrigin.x + delta.x, y: dragOrigin.y + delta.y,
@@ -291,10 +291,17 @@ final class PanelController: NSObject, NSWindowDelegate {
         bottom: Theme.bottomOffset))
   }
 
+  private func practiceVisibleFrame(on screen: NSScreen) -> NSRect {
+    var visible = screen.visibleFrame
+    // Reserve the child's space even while hidden, so holding Command never moves practice.
+    visible.size.height -= Theme.capsuleOffset + Theme.capsuleHeight
+    return visible
+  }
+
   private func resetPosition() {
     model.setPanelOffset(.init())
     guard let screen = panel.screen else { return }
-    let visible = screen.visibleFrame
+    let visible = practiceVisibleFrame(on: screen)
     let frame = PanelLayout.position(
       width: panel.frame.width, height: panel.frame.height,
       in: .init(visible),

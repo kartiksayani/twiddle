@@ -38,6 +38,7 @@ struct StoreTests {
     state.hintsOn = true
     state.seenIntro = true
     state.lastSprintLength = 60
+    state.codePack = .typescript
     return state
   }
 
@@ -52,7 +53,7 @@ struct StoreTests {
       !FileManager.default.fileExists(atPath: directory.appendingPathComponent("state.json").path))
   }
 
-  @Test func versionOneFixtureRestoresWithoutDependingOnCurrentEncoder() throws {
+  @Test @MainActor func versionOneFixtureRestoresWithoutDependingOnCurrentEncoder() throws {
     let directory = try directory()
     defer { try! FileManager.default.removeItem(at: directory) }
     let fixture = """
@@ -82,6 +83,9 @@ struct StoreTests {
     #expect(result.state.hintsOn && result.state.seenIntro)
     #expect(result.state.panelOffset == .init(x: -10, y: 20))
     #expect(result.state.lastSprintLength == 60)
+    #expect(result.state.codePack == nil)
+    let model = PracticeModel(store: store(directory), random: FixedRandom())
+    #expect(model.codePack == .all)
   }
 
   @Test func missingDirectoryIsCreatedOnSaveAndRoundTripRestoresEveryField() throws {
