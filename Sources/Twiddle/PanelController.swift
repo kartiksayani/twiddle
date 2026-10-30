@@ -26,6 +26,7 @@ final class PanelController: NSObject, NSWindowDelegate {
   private var mouseMonitor: Any?
   private var timer: Timer?
   private var motion = 0
+  private let capsulePanel: NSPanel
   private let panel: TwiddlePanel
   private let model: PracticeModel
 
@@ -37,7 +38,33 @@ final class PanelController: NSObject, NSWindowDelegate {
       backing: .buffered,
       defer: false
     )
+    capsulePanel = NSPanel(
+      contentRect: .zero, styleMask: [.borderless, .nonactivatingPanel],
+      backing: .buffered, defer: false)
     super.init()
+    capsulePanel.isOpaque = false
+    capsulePanel.backgroundColor = .clear
+    capsulePanel.ignoresMouseEvents = true
+    capsulePanel.hasShadow = true
+    capsulePanel.hidesOnDeactivate = false
+    capsulePanel.isReleasedWhenClosed = false
+    let capsuleView = NSHostingView(rootView: CommandCapsuleView(model: model))
+    let capsuleSize = capsuleView.fittingSize
+    let capsuleMaterial = NSVisualEffectView(frame: NSRect(origin: .zero, size: capsuleSize))
+    capsuleMaterial.material = .hudWindow
+    capsuleMaterial.blendingMode = .behindWindow
+    capsuleMaterial.state = .active
+    capsuleMaterial.maskImage = NSImage(size: capsuleSize, flipped: false) { rect in
+      NSColor.black.setFill()
+      NSBezierPath(roundedRect: rect, xRadius: Theme.capsuleRadius, yRadius: Theme.capsuleRadius)
+        .fill()
+      return true
+    }
+    capsuleView.frame = capsuleMaterial.bounds
+    capsuleView.autoresizingMask = [.width, .height]
+    capsuleMaterial.addSubview(capsuleView)
+    capsulePanel.contentView = capsuleMaterial
+    capsulePanel.setContentSize(capsuleSize)
     panel.level = .floating
     panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
     panel.hidesOnDeactivate = false
@@ -60,7 +87,9 @@ final class PanelController: NSObject, NSWindowDelegate {
     material.addSubview(hosting)
     panel.contentView = material
     panel.delegate = self
-    panel.router = KeyRouter(model: model) { [weak self] in self?.handle(.escape) }
+    panel.router = KeyRouter(
+      model: model, hide: { [weak self] in self?.handle(.escape) },
+      capsuleChanged: { [weak self] visible in self?.showCapsule(visible) })
   }
 
   func handle(_ event: PanelPresence.Event) {
@@ -76,12 +105,29 @@ final class PanelController: NSObject, NSWindowDelegate {
 
   func quit() {
     timer?.invalidate()
+    panel.router?.dismissCapsule()
     model.quit()
   }
 
   func windowDidResignKey(_ notification: Notification) { handle(.resignKey) }
 
+  private func showCapsule(_ visible: Bool) {
+    if visible {
+      guard !capsulePanel.isVisible else { return }
+      capsulePanel.setFrameOrigin(
+        NSPoint(
+          x: panel.frame.midX - capsulePanel.frame.width / 2,
+          y: panel.frame.maxY + Theme.capsuleOffset))
+      panel.addChildWindow(capsulePanel, ordered: .above)
+      capsulePanel.orderFront(nil)
+    } else {
+      panel.removeChildWindow(capsulePanel)
+      capsulePanel.orderOut(nil)
+    }
+  }
+
   private func hide() {
+    panel.router?.dismissCapsule()
     model.hide()
     timer?.invalidate()
     timer = nil
@@ -119,8 +165,12 @@ final class PanelController: NSObject, NSWindowDelegate {
       // AppKit delivers event monitors on the main thread.
       MainActor.assumeIsolated { self?.handle(.outsideMouseDown) }
     }
-    timer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
-      MainActor.assumeIsolated { self?.model.tick() }
+    timer = Timer.scheduledTimer(withTimeInterval: Theme.clockTick, repeats: true) {
+      [weak self] _ in
+      MainActor.assumeIsolated {
+        self?.model.tick()
+        self?.panel.router?.tick()
+      }
     }
     panel.makeKeyAndOrderFront(nil)
     NSAnimationContext.runAnimationGroup { context in

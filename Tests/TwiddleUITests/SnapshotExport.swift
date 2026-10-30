@@ -5,7 +5,8 @@ import TwiddleCore
 import TwiddleUI
 
 private enum Fixture: String, CaseIterable {
-  case waiting, fixed, resumed, paused, code
+  case waiting, fixed, resumed, paused, code, prose, weakKeys, weakFallback
+  case sprintReady, sprintRunning, sprintResult, capsule
 }
 
 struct SnapshotExport {
@@ -30,10 +31,28 @@ struct SnapshotExport {
             text: text + String(repeating: " ", count: 46)
               + String(repeating: "words ", count: 100),
             caret: fixture == .resumed ? 26 : 24, mistakes: [16]))
+        state.resume["code"] = Store.Resume(
+          session: TypingSession(
+            text: "if err := run(ctx); err != nil {\n    return fmt.Errorf(\"sync: %w\", err)\n}\n"
+              + String(repeating: "const value = await read();\n", count: 30), caret: 19,
+            mistakes: []))
+        state.resume["prose"] = Store.Resume(
+          session: TypingSession(
+            text:
+              "The sun had set behind the hill, and the long road lay quiet in the evening light. "
+              + String(repeating: "A little wind moved through the trees. ", count: 25), caret: 25,
+            mistakes: []))
+        if fixture == .weakKeys {
+          for key in ["q", "z", "[", "]", "-"] {
+            state.keys[key] = try JSONDecoder().decode(
+              KeyStats.Entry.self,
+              from: Data("{\"samples\":20,\"averageMs\":300,\"errorRate\":0.1}".utf8))
+          }
+        }
         try store.save(state)
         var time = 0.0
         let model = PracticeModel(
-          store: store, random: SystemRandomNumberGenerator(), now: { time })
+          store: store, random: SnapshotRandom(), now: { time })
         model.summon()
         for _ in 0..<(correct - (fixture == .fixed ? 1 : 0)) {
           model.handle(.character(model.session.expected!))
@@ -49,21 +68,58 @@ struct SnapshotExport {
         }
         time = fixture == .paused ? 10 : fixture == .resumed ? 0 : 3
         model.tick()
-        let content = Group {
-          if fixture == .code {
-            codePanel(counters: model.stats.today, scheme: scheme)
+        switch fixture {
+        case .code: model.handle(.source(.code))
+        case .prose: model.handle(.source(.prose))
+        case .weakKeys, .weakFallback: model.handle(.source(.weakKeys))
+        case .sprintReady, .sprintRunning, .sprintResult:
+          model.handle(.sprint)
+          if fixture != .sprintReady {
+            let count = fixture == .sprintRunning ? 86 : 210
+            let errors = fixture == .sprintRunning ? [75] : [16, 57, 103]
+            for index in 0..<count {
+              time = 3 + Double(index) * 0.05
+              if errors.contains(index) {
+                model.handle(.character("!"))
+                model.handle(.character("!"))
+              }
+              model.handle(.character(model.session.expected!))
+            }
+            time = fixture == .sprintRunning ? 15 : 33
+            model.tick()
+            if fixture == .sprintResult {
+              time = 33.61
+              model.tick()
+              #expect(model.sprintState == .result)
+            } else {
+              #expect(model.sprintState == .running)
+              #expect(model.sprintRemaining == 18)
+              #expect(model.headerCounters.wpm == 86)
+            }
           } else {
-            PanelView(model: model, snapshot: true)
+            #expect(model.sprintState == .ready)
+            #expect(model.headerCounters.presses == 0)
           }
+        default: break
+        }
+        let content = VStack(spacing: Theme.capsuleOffset) {
+          if fixture == .capsule { CommandCapsuleView(model: model, snapshot: true) }
+          PanelView(model: model, snapshot: true)
         }
         .environment(\.colorScheme, scheme)
         let renderer = ImageRenderer(content: content)
         renderer.scale = 2
         let image = try #require(renderer.cgImage)
         #expect(image.width == Int(Theme.panelSize.width * 2))
-        #expect(image.height == Int(Theme.panelSize.height * 2))
-        #expect(model.stats.today.wpm == 78)
-        #expect(model.stats.today.accuracy == 0.964)
+        let expectedHeight =
+          Theme.panelSize.height
+          + (fixture == .capsule
+            ? Theme.capsuleOffset + Theme.capsuleHeight : 0)
+        #expect(image.height == Int(expectedHeight * 2))
+        if ![Fixture.sprintRunning, .sprintResult].contains(fixture) {
+          #expect(model.stats.today.wpm == 78)
+          #expect(model.stats.today.accuracy == 0.964)
+        }
         if let output = ProcessInfo.processInfo.environment["TWIDDLE_SNAPSHOT_DIR"] {
           let destination = URL(fileURLWithPath: output, isDirectory: true)
           try FileManager.default.createDirectory(
@@ -77,23 +133,13 @@ struct SnapshotExport {
     }
   }
 
-  @MainActor private func codePanel(counters: StatsTracker.Counters, scheme: ColorScheme)
-    -> some View
-  {
-    let text = "if err := run(ctx); err != nil {\n    return fmt.Errorf(\"sync: %w\", err)\n}"
-    let session = TypingSession(text: text, caret: 3, mistakes: [])
-    let theme = Theme(scheme)
-    return VStack(spacing: 0) {
-      HeaderView(counters: counters, resumedWord: nil, paused: false, source: "Code")
-      PracticeTextView(
-        session: session, characters: Array(text), lines: TextLayout.layout(text),
-        blinks: false)
-    }
-    .frame(width: Theme.panelSize.width, height: Theme.panelSize.height)
-    .background(theme.solid)
-    .clipShape(RoundedRectangle(cornerRadius: Theme.radius))
-    .overlay(
-      RoundedRectangle(cornerRadius: Theme.radius)
-        .strokeBorder(theme.edge, lineWidth: Theme.edgeWidth))
+}
+
+private struct SnapshotRandom: RandomNumberGenerator {
+  private var state: UInt64 = 42
+
+  mutating func next() -> UInt64 {
+    state = state &* 6_364_136_223_846_793_005 &+ 1
+    return state
   }
 }

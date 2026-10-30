@@ -3,21 +3,16 @@
 The current state only. Replace this page at each checkpoint. Keep it under 40 lines.
 
 **Updated:** 2026-10-31
-**Main:** M0, M1 and M2 merged
-**Open PRs:** M3, `m3-flow-panel`
-**Active:** M3 review
+**Main:** M0 to M3 merged
+**Open PRs:** M4, `m4-sprint-switching`
+**Active:** M4 review
 **Unpushed work:** none
-
-## M3 evidence
-
-Verified in the running app with real key events: keys reach the panel and not the app behind it, Esc and `⌘Q` save, resume returns to the word start, and state survives a relaunch.
-
-Not verified: the live window material. The maintainer's shell has no Screen Recording permission, so `CHECKLIST.md` will carry it for the owner.
 
 ## Next steps
 
-1. Merge M3 after review and green CI.
-2. Build M4 to M7.
+1. Merge M4 after review and green CI.
+2. Build M5 to M7.
+3. `CHECKLIST.md` must cover the live window material, which needs Screen Recording to check here.
 
 ## Blockers
 

@@ -1,14 +1,24 @@
 public struct ContentProvider {
   public enum Source: String, Codable, CaseIterable, Sendable {
     case words, code, prose, weakKeys
+
+    public var label: String {
+      switch self {
+      case .words: "Words"
+      case .code: "Code"
+      case .prose: "Prose"
+      case .weakKeys: "Weak keys"
+      }
+    }
   }
 
   public struct Content: Equatable, Sendable {
     public let text: String
     public let fellBack: Bool
-    public var note: String? { fellBack ? "Not enough data yet" : nil }
+    public var note: String? { fellBack ? ContentProvider.insufficientDataNote : nil }
   }
 
+  static let insufficientDataNote = "Not enough data yet"
   static let words = lines(PackageResources.words_txt)
   static let code = String(decoding: PackageResources.code_txt, as: UTF8.self)
     .dropLast().split(separator: "\n\n").map(String.init)

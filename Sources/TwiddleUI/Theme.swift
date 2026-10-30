@@ -1,6 +1,29 @@
 import SwiftUI
 
 public struct Theme {
+  public static let progressHeight: CGFloat = 2
+  public static let resultTop: CGFloat = 10
+  public static let resultGap: CGFloat = 34
+  public static let resultValueSize: CGFloat = 40
+  public static let resultValueHeight: CGFloat = 44
+  public static let resultValueTracking: CGFloat = -0.8
+  public static let resultUnitSize: CGFloat = 14
+  public static let resultStatSize: CGFloat = 17
+  public static let resultStatGap: CGFloat = 4
+  public static let resultActionGap: CGFloat = 5
+  public static let resultActionLabelGap: CGFloat = 7
+  public static let resultActionBottom: CGFloat = 2
+  public static let actionHeight: CGFloat = 18
+  public static let actionWidth: CGFloat = 26
+  public static let capsuleHeight: CGFloat = 32
+  public static let capsuleOffset: CGFloat = 10
+  public static let capsuleGap: CGFloat = 10
+  public static let capsuleInset: CGFloat = 12
+  public static let capsuleRadius: CGFloat = 10
+  public static let capsuleLabelGap: CGFloat = 5
+  public static let capsuleSeparatorHeight: CGFloat = 14
+  public static let capsuleSeparatorWidth: CGFloat = 1
+  public static let clockTick = 0.05
   public static let panelSize = CGSize(width: 720, height: 136)
   public static let headerHeight: CGFloat = 32
   public static let bodyHeight: CGFloat = 104
@@ -39,6 +62,9 @@ public struct Theme {
   public static let summonDuration = 0.18
   public static let hideDuration = 0.12
 
+  public let hairStrong: Color
+  public let hair: Color
+  public let accentInk: Color
   public let surface: Color
   public let solid: Color
   public let primary: Color
@@ -52,6 +78,9 @@ public struct Theme {
 
   public init(_ scheme: ColorScheme) {
     let dark = scheme == .dark
+    hairStrong = (dark ? Color.white : Color.black).opacity(0.16)
+    hair = (dark ? Color.white : Color.black).opacity(0.08)
+    accentInk = Self.rgb(dark ? 0x17151F : 0xFFFFFF)
     surface = Self.rgb(dark ? 0x18181C : 0xF6F6F8).opacity(dark ? 0.72 : 0.78)
     solid = Self.rgb(dark ? 0x1F1F23 : 0xF6F6F8)
     primary = Self.rgb(dark ? 0xECECEE : 0x1C1C1F)

@@ -5,20 +5,54 @@ import TwiddleCore
 final class KeyRouter {
   private let model: PracticeModel
   private let hide: () -> Void
+  private let capsuleChanged: (Bool) -> Void
+  private var capsule = CommandCapsule()
 
-  init(model: PracticeModel, hide: @escaping () -> Void) {
+  func tick() { updateCapsule(.tick) }
+  func dismissCapsule() { updateCapsule(.dismiss) }
+
+  private func updateCapsule(_ event: CommandCapsule.Event) {
+    let wasVisible = capsule.isVisible
+    capsule.handle(event, at: ProcessInfo.processInfo.systemUptime)
+    if capsule.isVisible != wasVisible { capsuleChanged(capsule.isVisible) }
+  }
+
+  init(
+    model: PracticeModel, hide: @escaping () -> Void,
+    capsuleChanged: @escaping (Bool) -> Void
+  ) {
     self.model = model
     self.hide = hide
+    self.capsuleChanged = capsuleChanged
   }
 
   func route(_ event: NSEvent) {
+    if event.type == .flagsChanged {
+      updateCapsule(event.modifierFlags.contains(.command) ? .commandDown : .commandUp)
+      return
+    }
     guard event.type == .keyDown else { return }
     if event.keyCode == 53 {
       hide()
       return
     }
     if event.modifierFlags.contains(.command) {
-      if event.charactersIgnoringModifiers?.lowercased() == "q" { NSApp.terminate(nil) }
+      updateCapsule(.chord)
+      guard !event.isARepeat else { return }
+      if event.keyCode == 36 || event.keyCode == 76 {
+        model.handle(.freshText)
+        return
+      }
+      switch event.charactersIgnoringModifiers?.lowercased() {
+      case "1": model.handle(.source(.words))
+      case "2": model.handle(.source(.code))
+      case "3": model.handle(.source(.prose))
+      case "4": model.handle(.source(.weakKeys))
+      case "f": model.handle(.flow)
+      case "s": model.handle(.sprint)
+      case "q": NSApp.terminate(nil)
+      default: break
+      }
       return
     }
     guard !event.modifierFlags.contains(.control),
