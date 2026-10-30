@@ -186,6 +186,15 @@ struct RecorderTests {
 
 @MainActor
 struct LoginSettingTests {
+  private struct Failure: Error {}
+
+  @Test func failedUnregisterStaysOnAndShowsError() {
+    let login = LoginSetting(read: { true }, update: { _ in throw Failure() })
+    login.setEnabled(false)
+    #expect(login.enabled)
+    #expect(login.error != nil)
+  }
+
   @Test func readsServiceAndRegistersAndUnregisters() {
     var service = true
     let login = LoginSetting(read: { service }, update: { service = $0 })

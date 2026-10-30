@@ -62,7 +62,7 @@ public final class LoginSetting {
       enabled = read()
       if value && !enabled { error = "Allow Twiddle in System Settings → Login Items." }
     } catch {
-      enabled = false
+      enabled = read()
       self.error = error.localizedDescription
     }
   }
