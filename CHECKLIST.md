@@ -1,6 +1,6 @@
 # Owner's manual check
 
-Run `make install`, then open `/Applications/Twiddle.app`. These are the checks that need your eyes or a real login. Focus, Spaces, full screen, the hotkey recorder and dragging were verified in the running app. No permission prompt should appear during normal use.
+Run `make install`, then open `/Applications/Twiddle.app`. These are the checks that need your eyes or a real login. Focus, Spaces, full screen, the hotkey recorder and dragging were verified in the running app; the evidence is in PRs #1 and #7. No permission prompt should appear during normal use.
 
 - [ ] Material, dark: in Twiddle Settings choose Dark, close Settings, put a busy text window behind the panel, summon with `⌃⌥Space`, type a wrong key then the correct one, and toggle hints with `⌘/`. Expect blurred translucent material, legible typed/upcoming text, caret, errors and hints, with no clipping.
 - [ ] Material, light: repeat the preceding steps with Light, over both bright and dark busy windows. Expect the same legibility and a light translucent surface.

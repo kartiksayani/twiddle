@@ -19,7 +19,7 @@ Press Control–Option–Space (`⌃⌥Space`) to summon the panel on the displa
 
 While the panel is open:
 
-- `⌘F` selects Flow; `⌘S` selects Sprint, then cycles 15, 30 and 60 seconds on further presses.
+- `⌘F` selects Flow; `⌘S` selects Sprint, and cycles 15, 30 and 60 seconds while the sprint is ready. During a running sprint it starts again at the same length.
 - `⌘1`–`⌘4` select Words, Code, Prose and Weak keys.
 - `⌘/` toggles finger hints; `⌘P` shows Progress.
 - Hold `⌘` to see the available commands.
