@@ -13,3 +13,7 @@ Run `make install`, then open `/Applications/Twiddle.app`. These are the checks 
 - [ ] Live theme: in Settings choose Light, Dark, then System; expect its colours to change immediately. Close Settings and summon after each; expect matching panel colours. Leave System selected and Settings open, change macOS Appearance; expect Settings to update without relaunch. Close Settings and summon; expect the panel to match too.
 - [ ] Login: enable Launch at login, close and reopen Settings; expect it still on with no error. Log out of macOS and really log back in; expect Twiddle's icon without manually opening it, and the saved hotkey to summon. Disable Launch at login and repeat a real login; expect no Twiddle icon until opened manually.
 - [ ] Audio: start music in your usual player, summon, type for a minute, switch Flow/Sprint and dismiss. Expect uninterrupted playback throughout.
+- [ ] Capsule: drag the panel to the top of the screen and hold `⌘`. Expect the two-row capsule fully on screen, with the panel not moving.
+- [ ] Code packs: press `⌘2` repeatedly. Expect fresh text and the header to step through `Code · Go`, Python, TypeScript, SQL, Shell, then `Code`. Relaunch and expect the pack to stick.
+- [ ] Progress height: open `⌘P` near the bottom and the top of the screen. Expect the taller view fully on screen, and the panel's bottom edge not to move.
+- [ ] Ghost: run two sprints of the same length. Expect a faint caret moving smoothly in the second, and `New best` on the result if you beat the first.
