@@ -97,15 +97,15 @@ public final class PracticeModel {
   }
 
   public func handle(_ input: TypingSession.Input) {
-    guard isVisible else { return }
     let time = now()
+    settleElapsedSprint(at: time)
+    guard isVisible else { return }
     if mode == .sprint {
       if sprintState == .result {
         if case .character("\n") = input { readySprint() }
         return
       }
       guard sprintState != .locked else { return }
-      if let run = stats.run, time >= run.startedAt + Double(sprintLength) { return }
     }
     updateStats(at: time)
     let change = session.handle(input)
@@ -123,10 +123,11 @@ public final class PracticeModel {
   }
 
   public func handle(_ command: Command) {
+    let time = now()
+    settleElapsedSprint(at: time)
     guard isVisible else { return }
     if case .flow = command, mode == .flow { return }
     if case .source(let source) = command, mode == .flow && source == self.source { return }
-    let time = now()
     updateStats(at: time)
     switch command {
     case .flow:
@@ -169,8 +170,9 @@ public final class PracticeModel {
   }
 
   public func tick() {
-    guard isVisible else { return }
     let time = now()
+    settleElapsedSprint(at: time)
+    guard isVisible else { return }
     if let noteUntil, time >= noteUntil {
       resumedWord = nil
       self.noteUntil = nil
@@ -179,18 +181,6 @@ public final class PracticeModel {
     if mode == .sprint {
       if sprintState == .running, let run = stats.run {
         sprintElapsed = min(Double(sprintLength), max(0, time - run.startedAt))
-        if sprintElapsed >= Double(sprintLength),
-          let completed = stats.endRun(
-            at: run.startedAt + Double(sprintLength), completed: true)
-        {
-          completedSprint = SprintResult(
-            counters: completed.counters, mistakes: session.mistakes.count,
-            slowestPair: completed.keyStats.slowestPair?.letters)
-          sprintState = .locked
-          lockedUntil = time + 0.6
-          capture(completed, at: time)
-          save()
-        }
       } else if sprintState == .locked, let lockedUntil, time >= lockedUntil,
         let completedSprint
       {
@@ -206,6 +196,8 @@ public final class PracticeModel {
   public func hide() {
     guard isVisible else { return }
     finish()
+    flowSessions.removeAll()
+    flowNotes.removeAll()
     isVisible = false
   }
 
@@ -216,8 +208,25 @@ public final class PracticeModel {
 
   private func finish() {
     let time = now()
+    settleElapsedSprint(at: time)
     endCurrentRun(at: time)
     resetDayIfNeeded()
+    save()
+  }
+
+  private func settleElapsedSprint(at time: TimeInterval) {
+    guard mode == .sprint, sprintState == .running, let run = stats.run,
+      time >= run.startedAt + Double(sprintLength),
+      let completed = stats.endRun(at: run.startedAt + Double(sprintLength), completed: true)
+    else { return }
+    sprintElapsed = Double(sprintLength)
+    completedSprint = SprintResult(
+      counters: completed.counters, mistakes: session.mistakes.count,
+      slowestPair: completed.keyStats.slowestPair?.letters)
+    sprintState = .locked
+    lockedUntil = time + 0.6
+    resetDayIfNeeded()
+    capture(completed, at: time)
     save()
   }
 

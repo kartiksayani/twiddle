@@ -110,25 +110,110 @@ struct SprintInteractionTests {
     #expect(f.model.session.pending == nil)
   }
 
-  @Test func lateKeyBeforeTickIsIgnoredAndClockIsTickDriven() throws {
+  @Test func lateKeyBeforeTickCompletesSprintWithoutCountingKey() throws {
     let f = PracticeFixture()
     defer { try! f.clean() }
-    start(f)
-    f.type(1)
-    f.time = 30
-    f.type(1)
-    #expect(f.model.stats.today.presses == 1)
-    #expect(f.model.sprintState == .running)
-    #expect(f.model.sprintRemaining == 30)
-    f.time = 40
+    expireWithoutTick(f)
+    let today = f.model.stats.today
+    let keys = f.model.stats.keyStats.keys
+    let pairs = f.model.stats.keyStats.pairs
+    let caret = f.model.session.caret
+    f.model.handle(.character(f.model.session.expected!))
+    #expect(f.model.stats.today == today)
+    #expect(f.model.stats.keyStats.keys == keys)
+    #expect(f.model.stats.keyStats.pairs == pairs)
+    #expect(f.model.session.caret == caret)
+    #expect(f.model.sprintState == .locked)
+    #expect(f.model.sprintRemaining == 0)
+    #expect(f.model.headerCounters.presses == 5)
+    expectCompletedOriginalSprint(f)
+    f.time = 30.84
     f.model.tick()
     #expect(f.model.sprintState == .locked)
-    f.time = 40.59
-    f.model.tick()
-    #expect(f.model.sprintState == .locked)
-    f.time = 40.61
+    f.time = 30.86
     f.model.tick()
     #expect(f.model.result?.counters.activeSeconds == 30)
+    expectCompletedOriginalSprint(f)
+  }
+
+  @Test func hideAfterUntickedDeadlineSavesOriginalSprintOnce() throws {
+    let f = PracticeFixture()
+    defer { try! f.clean() }
+    expireWithoutTick(f)
+    f.model.hide()
+    #expect(!f.model.isVisible)
+    expectCompletedOriginalSprint(f)
+    f.model.tick()
+    f.model.hide()
+    f.model.quit()
+    expectCompletedOriginalSprint(f)
+  }
+
+  @Test func quitAfterUntickedDeadlineSavesOriginalSprintOnce() throws {
+    let f = PracticeFixture()
+    defer { try! f.clean() }
+    expireWithoutTick(f)
+    f.model.quit()
+    #expect(!f.model.isVisible)
+    expectCompletedOriginalSprint(f)
+    f.model.tick()
+    f.model.quit()
+    expectCompletedOriginalSprint(f)
+  }
+
+  @Test(arguments: ContentProvider.Source.allCases)
+  func sourceAfterUntickedDeadlineSavesOriginalSprintOnce(source: ContentProvider.Source) throws {
+    let f = PracticeFixture()
+    defer { try! f.clean() }
+    expireWithoutTick(f)
+    f.model.handle(.source(source))
+    #expect(f.model.source == source)
+    #expect(f.model.sprintState == .ready)
+    expectCompletedOriginalSprint(f)
+    f.model.tick()
+    f.model.hide()
+    f.model.quit()
+    expectCompletedOriginalSprint(f)
+  }
+
+  @Test func flowAfterUntickedDeadlineSavesOriginalSprintOnce() throws {
+    let f = PracticeFixture()
+    defer { try! f.clean() }
+    expireWithoutTick(f)
+    f.model.handle(.flow)
+    #expect(f.model.mode == .flow)
+    expectCompletedOriginalSprint(f)
+    f.model.tick()
+    f.model.hide()
+    f.model.quit()
+    expectCompletedOriginalSprint(f)
+  }
+
+  @Test func sprintAfterUntickedDeadlineSavesOriginalSprintOnce() throws {
+    let f = PracticeFixture()
+    defer { try! f.clean() }
+    expireWithoutTick(f)
+    f.model.handle(.sprint)
+    #expect(f.model.sprintState == .ready)
+    #expect(f.model.sprintLength == 30)
+    expectCompletedOriginalSprint(f)
+    f.model.tick()
+    f.model.hide()
+    f.model.quit()
+    expectCompletedOriginalSprint(f)
+  }
+
+  @Test func freshTextAfterUntickedDeadlineSavesOriginalSprintOnce() throws {
+    let f = PracticeFixture()
+    defer { try! f.clean() }
+    expireWithoutTick(f)
+    f.model.handle(.freshText)
+    #expect(f.model.sprintState == .ready)
+    expectCompletedOriginalSprint(f)
+    f.model.tick()
+    f.model.hide()
+    f.model.quit()
+    expectCompletedOriginalSprint(f)
   }
 
   @Test func lockLasts600MillisecondsAndSavesOnceWithBestWPM() throws {
@@ -368,16 +453,45 @@ struct SprintInteractionTests {
   @Test func switchingBackToFlowSourceKeepsPlaceAndMarks() throws {
     let f = PracticeFixture()
     defer { try! f.clean() }
+    try f.seed(caret: 6, marks: [0])
     f.model.summon()
-    f.model.handle(.character("!"))
-    f.type(7)
+    f.type(2)
+    f.model.handle(.character("x"))
     let previous = f.model.session
+    #expect(previous.caret == 8)
+    #expect(previous.pending == "x")
     f.model.handle(.source(.code))
     f.type(4)
     f.model.handle(.source(.words))
     #expect(f.model.session.text == previous.text)
     #expect(f.model.session.caret == previous.caret)
+    #expect(f.model.session.pending == previous.pending)
     #expect(f.model.session.mistakes == previous.mistakes)
+  }
+
+  @Test(arguments: [false, true])
+  func hideDropsCachedFlowPositionAndPending(hideInSprint: Bool) throws {
+    let f = PracticeFixture()
+    defer { try! f.clean() }
+    try f.seed(caret: 6, marks: [0])
+    f.model.summon()
+    f.type(2)
+    f.model.handle(.character("x"))
+    let previous = f.model.session
+    #expect(previous.caret == 8)
+    #expect(previous.pending == "x")
+    #expect(previous.mistakes == [0, 8])
+    f.model.handle(.source(.code))
+    f.type(2)
+    if hideInSprint { f.model.handle(.sprint) }
+    f.model.hide()
+    f.model.summon()
+    if hideInSprint { f.model.handle(.flow) }
+    f.model.handle(.source(.words))
+    #expect(f.model.session.text == previous.text)
+    #expect(f.model.session.caret == 6)
+    #expect(f.model.session.pending == nil)
+    #expect(f.model.session.mistakes == [0])
   }
 
   @Test func flowCommandInFlowChangesNothing() throws {
@@ -595,6 +709,27 @@ struct SprintInteractionTests {
   private func start(_ f: PracticeFixture) {
     f.model.summon()
     if f.model.mode == .flow { f.model.handle(.sprint) }
+  }
+
+  private func expireWithoutTick(_ f: PracticeFixture) {
+    f.model.summon()
+    f.model.handle(.source(.code))
+    f.model.handle(.sprint)
+    f.type(5)
+    f.time = 30.25
+    #expect(f.model.sprintState == .running)
+    #expect(f.model.state.runs.isEmpty)
+  }
+
+  private func expectCompletedOriginalSprint(_ f: PracticeFixture) {
+    #expect(f.model.stats.run == nil)
+    #expect(f.model.state.runs.count == 1)
+    #expect(f.model.state.runs.first?.mode == .sprint)
+    #expect(f.model.state.runs.first?.source == .code)
+    #expect(f.model.state.runs.first?.startedAt == f.date)
+    #expect(f.model.state.runs.first?.activeSeconds == 30)
+    #expect(f.model.state.runs.first?.chars == 5)
+    #expect(f.store.load().state.runs == f.model.state.runs)
   }
 
   private func lock(_ f: PracticeFixture) {
