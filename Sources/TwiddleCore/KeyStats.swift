@@ -1,24 +1,48 @@
 import Foundation
 
 public struct KeyStats {
-  public struct Entry: Equatable {
+  public struct Entry: Equatable, Codable, Sendable {
     /// Samples count eligible latencies; error EWMA includes every attempt at this key.
     public fileprivate(set) var samples = 0
     public fileprivate(set) var averageMs = 0.0
     public fileprivate(set) var errorRate = 0.0
-    fileprivate var attempts = 0
+    private var hasAttempts = false
+
+    private enum CodingKeys: CodingKey { case samples, averageMs, errorRate }
+
+    public init() {}
+
+    public static func == (lhs: Entry, rhs: Entry) -> Bool {
+      lhs.samples == rhs.samples && lhs.averageMs == rhs.averageMs && lhs.errorRate == rhs.errorRate
+    }
+
+    public init(from decoder: any Decoder) throws {
+      let values = try decoder.container(keyedBy: CodingKeys.self)
+      samples = try values.decode(Int.self, forKey: .samples)
+      averageMs = try values.decode(Double.self, forKey: .averageMs)
+      errorRate = try values.decode(Double.self, forKey: .errorRate)
+      guard samples >= 0, averageMs >= 0, averageMs.isFinite,
+        errorRate.isFinite, (0...1).contains(errorRate)
+      else {
+        throw DecodingError.dataCorrupted(
+          .init(codingPath: decoder.codingPath, debugDescription: "Invalid key statistics"))
+      }
+      // A saved entry exists only after an attempt, even with no latency samples.
+      hasAttempts = true
+    }
 
     public var score: Double { averageMs * (1 + 2 * errorRate) }
 
     fileprivate mutating func recordError(_ wrong: Bool) {
       let value = wrong ? 1.0 : 0.0
-      errorRate = attempts == 0 ? value : errorRate + 0.1 * (value - errorRate)
-      attempts += 1
+      errorRate = hasAttempts ? errorRate + 0.1 * (value - errorRate) : value
+      hasAttempts = true
     }
 
     fileprivate mutating func recordLatency(_ milliseconds: Double) {
       averageMs = samples == 0 ? milliseconds : averageMs + 0.1 * (milliseconds - averageMs)
       samples += 1
+      hasAttempts = true
     }
   }
 
@@ -36,7 +60,10 @@ public struct KeyStats {
   public private(set) var pairs: [String: Entry] = [:]
   private var previousCorrect: (key: Character, time: TimeInterval)?
 
-  public init() {}
+  public init(keys: [Character: Entry] = [:], pairs: [String: Entry] = [:]) {
+    self.keys = keys
+    self.pairs = pairs
+  }
 
   public var weakestKeys: [RankedKey] {
     let eligible = keys.filter { $0.value.samples >= 20 }
