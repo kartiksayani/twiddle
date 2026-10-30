@@ -36,8 +36,8 @@ No session to start. No score to protect. No timer unless you ask for one.
 <td><img src="docs/screenshots/hints.png" alt="Finger hints on a keyboard map"><br><b>Finger hints</b><br>An optional keyboard map shows which finger should take the next key. It guides, and never grades.</td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/progress.png" alt="Today's numbers, a speed trend and the weakest keys"><br><b>Progress</b><br>Today's numbers, your recent trend and your slowest keys. A glance, not a dashboard.</td>
-<td><img src="docs/screenshots/commands.png" alt="The command capsule above the panel"><br><b>All keyboard</b><br>Hold <code>⌘</code> to see every command. The mouse can stay where it is.</td>
+<td><img src="docs/screenshots/progress.png" alt="Today's numbers, a speed trend and the weakest keys"><br><b>Progress</b><br>Today's numbers, your recent trend and your weakest keys, by speed and errors. A glance, not a dashboard.</td>
+<td><img src="docs/screenshots/commands.png" alt="The command capsule above the panel"><br><b>All keyboard</b><br>Hold <code>⌘</code> to see the commands. The mouse can stay where it is.</td>
 </tr>
 </table>
 
@@ -53,6 +53,8 @@ No session to start. No score to protect. No timer unless you ask for one.
 | `⌘/` | Finger hints |
 | `⌘P` | Progress |
 | `⌘,` | Settings |
+| `⌘Return` | Fresh text |
+| `⌘Q` | Quit |
 
 Clicking another window dismisses the panel too. The menu-bar icon opens Practise, Progress and Settings.
 
