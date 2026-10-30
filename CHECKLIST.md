@@ -15,5 +15,5 @@ Run `make install`, then open `/Applications/Twiddle.app`. These are the checks 
 - [ ] Audio: start music in your usual player, summon, type for a minute, switch Flow/Sprint and dismiss. Expect uninterrupted playback throughout.
 - [ ] Capsule: drag the panel to the top of the screen and hold `⌘`. Expect the two-row capsule fully on screen, with the panel not moving.
 - [ ] Code packs: press `⌘2` repeatedly. Expect fresh text and the header to step through `Code · Go`, Python, TypeScript, SQL, Shell, then `Code`. Relaunch and expect the pack to stick.
-- [ ] Progress height: open `⌘P` near the bottom and the top of the screen. Expect the taller view fully on screen, and the panel's bottom edge not to move.
-- [ ] Ghost: run two sprints of the same length. Expect a faint caret moving smoothly in the second, and `New best` on the result if you beat the first.
+- [ ] Progress height: open `⌘P` near the bottom of the screen, then near the top. Expect the taller view fully on screen each time. The bottom edge stays put when there's room above, and otherwise the panel shifts down just enough to fit.
+- [ ] Ghost: run two sprints of the same length. Expect a faint caret moving smoothly in the second, and `New best` on the result whenever you beat your best for that length.
