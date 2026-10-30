@@ -1,0 +1,15 @@
+#!/bin/sh
+# Codex's sandbox blocks SwiftPM's nested sandbox and the default cache paths.
+set -eu
+toolchain=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain
+export SWIFTPM_MODULECACHE_OVERRIDE="$PWD/.build/ModuleCache"
+swift_command=$1
+shift
+case "$swift_command" in
+  build|test|package)
+    exec "$toolchain/usr/bin/swift" "$swift_command" --disable-sandbox \
+      --cache-path "$PWD/.build/cache" --config-path "$PWD/.build/config" \
+      --security-path "$PWD/.build/security" "$@"
+    ;;
+  *) exec "$toolchain/usr/bin/swift" "$swift_command" "$@" ;;
+esac

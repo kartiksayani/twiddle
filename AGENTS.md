@@ -27,6 +27,6 @@ Read `SPEC.md` and `HANDOFF.md` first. `ORCHESTRATOR.md` is the process.
 
 ## Git
 
-- Work on the milestone branch you are given.
-- Don't push. The maintainer pushes and merges.
+- Work on the milestone branch you are given, and leave your work uncommitted.
+- Don't push. The maintainer commits, pushes and merges.
 - The repo is public. Never commit secrets, personal data or machine-specific paths.
