@@ -67,7 +67,7 @@ struct RestoreTests {
     #expect(tracker.run?.counters == run)
     tracker.record(enginePress(), at: 0.5)
     #expect(tracker.today.presses == 1)
-    #expect(tracker.today.activeSeconds == 0)
+    #expect(tracker.today.activeSeconds == 0.25)
     #expect(tracker.keyStats.keys["a"]?.samples == 1)
   }
 

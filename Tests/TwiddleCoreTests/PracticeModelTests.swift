@@ -59,6 +59,21 @@ struct PracticeModelTests {
     #expect(f.model.caretBlinks)
   }
 
+  @Test func runSpanningMidnightStillExpiresAfterIdle() throws {
+    let f = PracticeFixture()
+    defer { try! f.clean() }
+    f.model.summon()
+    f.type(50)
+    f.date = f.date.addingTimeInterval(86_400)
+    f.model.tick()
+    #expect(f.model.stats.today.presses == 0)
+    #expect(f.model.state.runs.isEmpty)
+    f.time += 300
+    f.model.tick()
+    #expect(f.model.state.runs.count == 1)
+    #expect(f.model.isPaused)
+  }
+
   @Test func visibleAfterTypingThenSummonKeepsCaretAndToday() throws {
     let f = PracticeFixture()
     defer { try! f.clean() }
@@ -345,7 +360,7 @@ struct PracticeModelTests {
     f.type(1)
     #expect(f.model.stats.today.presses == 1)
     #expect(f.model.stats.today.netCorrectChars == 1)
-    #expect(f.model.stats.today.activeSeconds == 0)
+    #expect(f.model.stats.today.activeSeconds == 0.1)
     #expect(f.model.stats.run?.counters.presses == 3)
     #expect(f.model.stats.keyStats.keys.count >= keys.count)
   }
