@@ -35,8 +35,8 @@ public struct SettingsForm: View {
           row("Summon hotkey") { hotkeyField }
           if expanded {
             Text(message)
-              .font(.system(size: Theme.settingsHelpFont))
-              .foregroundStyle(conflict ? theme.error : theme.typed)
+              .font(.system(size: Theme.labelSize))
+              .foregroundStyle(conflict ? theme.settingsConflict : theme.typed)
               .frame(maxWidth: .infinity, alignment: .trailing)
               .frame(height: Theme.settingsMessageHeight)
               .padding(.horizontal, Theme.settingsRowInset)
@@ -147,7 +147,7 @@ public struct SettingsForm: View {
     .font(.system(size: Theme.settingsControlFont, weight: .medium))
     .padding(.horizontal, Theme.settingsControlInset)
     .frame(width: expanded ? Theme.settingsRecordingWidth : Theme.settingsHotkeyWidth)
-    .frame(height: Theme.settingsControlHeight)
+    .frame(height: expanded ? Theme.settingsRecordingHeight : Theme.settingsControlHeight)
     .background(theme.hair, in: RoundedRectangle(cornerRadius: Theme.settingsControlRadius))
     .overlay {
       RoundedRectangle(cornerRadius: Theme.settingsControlRadius)
@@ -159,7 +159,8 @@ public struct SettingsForm: View {
       if recording {
         RoundedRectangle(cornerRadius: Theme.settingsControlRadius)
           .stroke(
-            theme.accent.opacity(Theme.settingsFocusOpacity), lineWidth: Theme.settingsFocusWidth)
+            theme.settingsAccent.opacity(Theme.settingsFocusOpacity),
+            lineWidth: Theme.settingsFocusWidth)
       }
     }
   }
@@ -208,7 +209,11 @@ public struct SettingsForm: View {
           selection.wrappedValue = value
         } label: {
           Text(labels[index])
-            .font(.system(size: Theme.settingsControlFont))
+            .font(
+              .system(
+                size: Theme.settingsControlFont,
+                weight: selection.wrappedValue == value ? .medium : .regular)
+            )
             .foregroundStyle(selection.wrappedValue == value ? theme.primary : theme.secondary)
             .padding(.horizontal, horizontalInset)
             .frame(height: Theme.settingsControlHeight - Theme.settingsSegmentInset * 2)
@@ -237,7 +242,7 @@ public struct SettingsForm: View {
       .padding(.horizontal, Theme.settingsControlInset)
     }
     .menuStyle(.button).buttonStyle(.plain).menuIndicator(.hidden).fixedSize()
-    .frame(height: Theme.settingsControlHeight)
+    .frame(height: Theme.settingsMenuHeight)
     .background(theme.hair, in: RoundedRectangle(cornerRadius: Theme.settingsControlRadius))
   }
 }

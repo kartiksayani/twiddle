@@ -2,9 +2,8 @@
 # Cheap pre-commit checks. The full gate is `make check`.
 set -eu
 
-email=$(git config user.email)
-if [ "$email" != "kartik.sayani.3196@gmail.com" ]; then
-  echo "check-commit: this public repo commits as kartik.sayani.3196@gmail.com, not $email" >&2
+if ! git config --local user.email >/dev/null; then
+  echo "check-commit: set a repo-local user.email, so a global identity can't reach this public repo" >&2
   exit 1
 fi
 

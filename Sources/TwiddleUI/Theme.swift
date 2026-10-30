@@ -19,6 +19,8 @@ public struct Theme {
   public static let settingsCompactGap: CGFloat = 8
   public static let settingsCompactBottom: CGFloat = 18
   public static let settingsControlHeight: CGFloat = 24
+  public static let settingsRecordingHeight: CGFloat = 26
+  public static let settingsMenuHeight: CGFloat = 22
   public static let settingsControlRadius: CGFloat = 6
   public static let settingsControlInset: CGFloat = 10
   public static let settingsSegmentInset: CGFloat = 2
@@ -173,6 +175,7 @@ public struct Theme {
   public let toggleOnInk: Color
   public let toggleOffInk: Color
   public let settingsAccent: Color
+  public let settingsConflict: Color
 
   public init(_ scheme: ColorScheme) {
     let dark = scheme == .dark
@@ -202,6 +205,8 @@ public struct Theme {
       dark
       ? Color(.sRGB, red: 0.992693, green: 0.451639, blue: 0.425769)
       : Color(.sRGB, red: 0.786912, green: 0.184, blue: 0.198880)
+    settingsConflict =
+      dark ? Color(.sRGB, red: 1, green: 0.583656, blue: 0.552349) : error
     cap = (dark ? Color.white : Color.black).opacity(dark ? 0.1 : 0.07)
     edge = Color.white.opacity(dark ? 0.16 : 0.7)
   }
