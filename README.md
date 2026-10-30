@@ -7,10 +7,7 @@
 **Your agent is thinking. Your build is running. Slack is typing…**<br>
 Press a hotkey, get faster at typing right where you are, and vanish.
 
-<picture>
-  <source media="(prefers-color-scheme: light)" srcset="docs/screenshots/hero-light.png">
-  <img src="docs/screenshots/hero-dark.png" alt="The Twiddle panel floating over a terminal running a long coding-agent session" width="800">
-</picture>
+<img src="docs/screenshots/demo.gif" alt="While a coding agent thinks in a terminal, the Twiddle panel appears, a few lines get typed, and it vanishes when the agent finishes" width="800">
 
 `macOS 26` · `Apple silicon` · `no account` · `no permissions` · `nothing uploaded` · `MIT`
 
@@ -32,11 +29,15 @@ No session to start. No score to protect. No timer unless you ask for one.
 <td width="50%"><img src="docs/screenshots/sprint.png" alt="A sprint result card"><br><b>Sprint</b><br>15, 30 or 60 seconds, then a result card. <code>⌘S</code> and go.</td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/code.png" alt="Practice text made of source code"><br><b>Practice what you actually type</b><br>Common words, code and terminal commands, classic prose, or drills built from your weakest keys.</td>
+<td><img src="docs/screenshots/code.png" alt="Practice text made of source code"><br><b>Practice what you actually type</b><br>Go, Python, TypeScript, SQL and Shell, one pack at a time. Press <code>⌘2</code> again to switch. Common words and classic prose are there too.</td>
 <td><img src="docs/screenshots/hints.png" alt="Finger hints on a keyboard map"><br><b>Finger hints</b><br>An optional keyboard map shows which finger should take the next key. It guides, and never grades.</td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/progress.png" alt="Today's numbers, a speed trend and the weakest keys"><br><b>Progress</b><br>Today's numbers, your recent trend and your weakest keys, by speed and errors. A glance, not a dashboard.</td>
+<td><img src="docs/screenshots/ghost.png" alt="A sprint with a faint second caret ahead of the real one"><br><b>Race your ghost</b><br>A faint caret runs at your best pace for that sprint length. Beat it for a <code>New best</code>.</td>
+<td><img src="docs/screenshots/symbols.png" alt="Practice text made of numbers and symbols"><br><b>Numbers and symbols</b><br>The keys most people still reach for by eye, in realistic shapes like <code>port: 8080</code>.</td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/progress.png" alt="Today's numbers, rhythm, a speed trend, the weakest keys and the slowest letter pairs"><br><b>Progress that tells you something</b><br>Your trend, how even your rhythm is, your weakest keys and slowest letter pairs, and how far symbols slow you down. Weak keys drills aim straight at them.</td>
 <td><img src="docs/screenshots/commands.png" alt="The command capsule above the panel"><br><b>All keyboard</b><br>Hold <code>⌘</code> to see the commands. The mouse can stay where it is.</td>
 </tr>
 </table>
@@ -49,7 +50,7 @@ No session to start. No score to protect. No timer unless you ask for one.
 | `Esc` | Dismiss |
 | `⌘F` | Flow |
 | `⌘S` | Sprint. Press again to cycle 15, 30 and 60 seconds before you start, or to restart a running sprint |
-| `⌘1` `⌘2` `⌘3` `⌘4` | Words, Code, Prose, Weak keys |
+| `⌘1` `⌘2` `⌘3` `⌘4` `⌘5` | Words, Code, Prose, Weak keys, Symbols. On Code, `⌘2` cycles the language packs |
 | `⌘/` | Finger hints |
 | `⌘P` | Progress |
 | `⌘,` | Settings |
@@ -79,7 +80,7 @@ Twiddle only reads keys while its panel is open, and asks for no Accessibility o
 
 ## Credits
 
-Prose comes from *Alice's Adventures in Wonderland* by Lewis Carroll (1865) and *The Time Machine* by H. G. Wells (1895), both public domain and checked against [Project Gutenberg](https://www.gutenberg.org). Words, code and drills were written for the project.
+Prose comes from *Alice's Adventures in Wonderland* by Lewis Carroll (1865) and *The Time Machine* by H. G. Wells (1895), both public domain and checked against [Project Gutenberg](https://www.gutenberg.org). Words, code, symbols and drills were written for the project.
 
 Images are composed from the app's real views by `make screenshots`. The desktop behind the panel is drawn, and the live app adds macOS's blur.
 

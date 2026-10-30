@@ -1,7 +1,10 @@
 import AppKit
+import ImageIO
 import SwiftUI
 import Testing
+import TwiddleCore
 import TwiddleUI
+import UniformTypeIdentifiers
 
 struct ReadmeScreenshots {
   @Test(.enabled(if: ProcessInfo.processInfo.environment["TWIDDLE_SCREENSHOT_DIR"] != nil))
@@ -13,17 +16,10 @@ struct ReadmeScreenshots {
       .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
       .appendingPathComponent(".build/snapshots", isDirectory: true)
 
-    for scheme in [ColorScheme.dark, .light] {
-      let name = scheme == .dark ? "dark" : "light"
-      let panel = try load("waiting-\(name)", from: snapshots)
-      try export(
-        DesktopScene(panel: panel, scheme: scheme), size: CGSize(width: 1440, height: 900),
-        scale: 1600.0 / 1440, to: destination.appendingPathComponent("hero-\(name).png"))
-    }
-
     for (name, fixture) in [
       ("flow", "waiting"), ("code", "code"), ("sprint", "sprintResult"),
       ("hints", "hintsPlain"), ("progress", "progressData"), ("commands", "capsule"),
+      ("symbols", "symbols"), ("ghost", "sprintGhost"),
     ] {
       let panel = try load("\(fixture)-dark", from: snapshots)
       // Multiples of three keep the 4/3 export scale on whole pixels.
@@ -36,6 +32,115 @@ struct ReadmeScreenshots {
         content, size: CGSize(width: 900, height: height), scale: 4.0 / 3,
         to: destination.appendingPathComponent("\(name).png"))
     }
+    try demo(to: destination.appendingPathComponent("demo.gif"))
+  }
+
+  @MainActor private func demo(to url: URL) throws {
+    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try! FileManager.default.removeItem(at: directory) }
+    let date = Date(timeIntervalSince1970: 0)
+    let store = Store(directory: directory, currentDate: { date })
+    var state = Store.State(date: store.today)
+    state.today = .init(
+      date: store.today,
+      counters: .init(netCorrectChars: 100, presses: 100, correctPresses: 100, activeSeconds: 15))
+    state.resume["words"] = .init(
+      session: TypingSession(
+        text: String(
+          repeating: "there might still think about small early because around another people ",
+          count: 12)))
+    try store.save(state)
+    // Let the resume note expire before the storyboard starts.
+    var time = -3.0
+    let model = PracticeModel(store: store, random: DemoRandom(), now: { time }, date: { date })
+    model.summon()
+
+    var random = DemoRandom()
+    var events: [(time: Double, input: TypingSession.Input)] = []
+    let text = Array(model.session.text)
+    var next = 1.10
+    var offset = 0
+    while next < 8.85 {
+      if offset == 32 {
+        events.append((next, .character("q")))
+        events.append((next + 0.36, .backspace))
+        next += 0.46
+      }
+      events.append((next, .character(text[offset])))
+      next += 0.12 + Double(random.next() % 61) / 1000
+      offset += 1
+    }
+
+    // Centisecond boundaries alternate 80/90 ms delays without accumulating GIF rounding drift.
+    let boundaries = (0...120).map { (Double($0) / 12 * 100).rounded() / 100 }
+    let data = NSMutableData()
+    let encoder = try #require(
+      CGImageDestinationCreateWithData(data, UTType.gif.identifier as CFString, 120, nil))
+    CGImageDestinationSetProperties(
+      encoder, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFLoopCount: 0]] as CFDictionary)
+    var eventIndex = 0
+    var sawPending = false
+    var sawCorrection = false
+    for frame in 0..<120 {
+      let frameTime = boundaries[frame]
+      while eventIndex < events.count && events[eventIndex].time <= frameTime {
+        time = events[eventIndex].time
+        model.handle(events[eventIndex].input)
+        eventIndex += 1
+      }
+      time = frameTime
+      model.tick()
+      if model.session.pending != nil { sawPending = true }
+      if sawPending && model.session.pending == nil && model.session.caret > 32 {
+        sawCorrection = true
+      }
+      try autoreleasepool {
+        let panelRenderer = ImageRenderer(
+          content: PanelView(model: model, snapshot: true).environment(\.colorScheme, .dark))
+        panelRenderer.scale = 2
+        let panel = try #require(panelRenderer.cgImage)
+        let summon = min(1, max(0, (frameTime - 0.75) / Theme.summonDuration))
+        let eased = UnitCurve.easeOut.value(at: summon)
+        let fade = min(1, max(0, (frameTime - 9.15) / Theme.hideDuration))
+        let scene = DesktopScene(
+          panel: panel, scheme: .dark, panelOpacity: eased * (1 - fade),
+          panelRise: Theme.summonRise * (1 - eased),
+          elapsed: 134 + Int(min(frameTime, 9) + 0.5), finished: frameTime >= 9)
+        let image = try render(scene, size: CGSize(width: 1440, height: 900), scale: 800.0 / 1440)
+        let delay = ((boundaries[frame + 1] - frameTime) * 100).rounded() / 100
+        CGImageDestinationAddImage(
+          encoder, image,
+          [
+            kCGImagePropertyGIFDictionary: [
+              kCGImagePropertyGIFDelayTime: delay, kCGImagePropertyGIFUnclampedDelayTime: delay,
+            ]
+          ] as CFDictionary)
+      }
+    }
+    #expect(eventIndex == events.count)
+    #expect(model.session.caret == offset)
+    #expect(model.session.mistakes == [32])
+    #expect(sawPending && sawCorrection)
+    #expect((75...85).contains(model.headerCounters.wpm))
+    #expect(CGImageDestinationFinalize(encoder))
+    #expect(data.length < 5_000_000)
+    try (data as Data).write(to: url)
+
+    let source = try #require(CGImageSourceCreateWithData(data, nil))
+    #expect(CGImageSourceGetCount(source) == 120)
+    var duration = 0.0
+    for frame in 0..<120 {
+      let properties = try #require(
+        CGImageSourceCopyPropertiesAtIndex(source, frame, nil) as? [CFString: Any])
+      #expect(properties[kCGImagePropertyPixelWidth] as? Int == 800)
+      #expect(properties[kCGImagePropertyPixelHeight] as? Int == 500)
+      let gif = try #require(properties[kCGImagePropertyGIFDictionary] as? [CFString: Any])
+      duration += try #require(gif[kCGImagePropertyGIFUnclampedDelayTime] as? Double)
+    }
+    #expect(abs(duration - 10) < 0.001)
+    let properties = try #require(CGImageSourceCopyProperties(source, nil) as? [CFString: Any])
+    let gif = try #require(properties[kCGImagePropertyGIFDictionary] as? [CFString: Any])
+    #expect(gif[kCGImagePropertyGIFLoopCount] as? Int == 0)
   }
 
   @MainActor private func load(_ name: String, from directory: URL) throws -> CGImage {
@@ -46,16 +151,32 @@ struct ReadmeScreenshots {
   @MainActor private func export(
     _ content: some View, size: CGSize, scale: CGFloat, to url: URL
   ) throws {
+    let image = try render(content, size: size, scale: scale)
+    let png = try #require(
+      NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]))
+    #expect(png.count < 1_000_000)
+    try png.write(to: url)
+  }
+
+  @MainActor private func render(
+    _ content: some View, size: CGSize, scale: CGFloat
+  ) throws -> CGImage {
     let renderer = ImageRenderer(content: content.frame(width: size.width, height: size.height))
     renderer.scale = scale
     renderer.isOpaque = true
     let image = try #require(renderer.cgImage)
     #expect(image.width == Int((size.width * scale).rounded()))
     #expect(image.height == Int((size.height * scale).rounded()))
-    let png = try #require(
-      NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]))
-    #expect(png.count < 1_000_000)
-    try png.write(to: url)
+    return image
+  }
+}
+
+private struct DemoRandom: RandomNumberGenerator {
+  private var state: UInt64 = 42
+
+  mutating func next() -> UInt64 {
+    state = state &* 6_364_136_223_846_793_005 &+ 1
+    return state
   }
 }
 
@@ -120,17 +241,22 @@ private struct DesktopWallpaper: View {
 private struct DesktopScene: View {
   let panel: CGImage
   let scheme: ColorScheme
+  var panelOpacity = 1.0
+  var panelRise = 0.0
+  var elapsed = 134
+  var finished = false
 
   var body: some View {
     ZStack(alignment: .topLeading) {
       DesktopWallpaper(scheme: scheme)
       DesktopMenuBar(scheme: scheme)
         .frame(width: 1440, height: 28)
-      AgentTerminal(scheme: scheme)
+      AgentTerminal(scheme: scheme, elapsed: elapsed, finished: finished)
         .frame(width: 1080, height: 570)
         .position(x: 720, y: 395)
       SnapshotPanel(image: panel)
-        .position(x: 720, y: 732)
+        .opacity(panelOpacity)
+        .position(x: 720, y: 732 + panelRise)
     }
     .environment(\.colorScheme, scheme)
   }
@@ -166,6 +292,8 @@ private struct DesktopMenuBar: View {
 
 private struct AgentTerminal: View {
   let scheme: ColorScheme
+  var elapsed = 134
+  var finished = false
 
   private var theme: Theme { Theme(scheme) }
 
@@ -195,9 +323,14 @@ private struct AgentTerminal: View {
         Text("Checking focus handling and the edge cases…")
           .foregroundStyle(theme.secondary)
         HStack(spacing: 10) {
-          Image(systemName: "circle.dotted").foregroundStyle(theme.accent)
-          Text("Thinking…").foregroundStyle(theme.primary)
-          Text("2m 14s").foregroundStyle(theme.secondary)
+          if finished {
+            Text("✓").foregroundStyle(theme.accent)
+            Text("Done in \(elapsed / 60)m \(elapsed % 60)s").foregroundStyle(theme.primary)
+          } else {
+            Image(systemName: "circle.dotted").foregroundStyle(theme.accent)
+            Text("Thinking…").foregroundStyle(theme.primary)
+            Text("\(elapsed / 60)m \(elapsed % 60)s").foregroundStyle(theme.secondary)
+          }
         }
         Spacer(minLength: 0)
       }
