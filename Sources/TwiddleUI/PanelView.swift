@@ -31,7 +31,7 @@ public struct PanelView: View {
         } else {
           PracticeTextView(
             session: model.session, characters: model.characters, lines: model.lines,
-            blinks: !snapshot && model.caretBlinks)
+            blinks: !snapshot && model.caretBlinks, ghostOffset: model.ghostOffset)
         }
       } else {
         HStack {

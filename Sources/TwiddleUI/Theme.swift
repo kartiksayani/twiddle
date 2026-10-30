@@ -62,7 +62,7 @@ public struct Theme {
   public static let handGap: CGFloat = 9
   public static let handHeight: CGFloat = 28
   public static let handHeights: [CGFloat] = [15, 21, 24, 21, 11, 11, 21, 24, 21, 15]
-  public static let progressBodyHeight: CGFloat = 153
+  public static let progressBodyHeight: CGFloat = 224
   public static let progressTop: CGFloat = 18
   public static let progressBottom: CGFloat = 22
   public static let progressGap: CGFloat = 40
@@ -95,7 +95,7 @@ public struct Theme {
   public static let introFooterGap: CGFloat = 16
   public static let progressHeight: CGFloat = 2
   public static let resultTop: CGFloat = 10
-  public static let resultGap: CGFloat = 34
+  public static let resultGap: CGFloat = 24
   public static let resultValueSize: CGFloat = 40
   public static let resultValueHeight: CGFloat = 44
   public static let resultValueTracking: CGFloat = -0.8

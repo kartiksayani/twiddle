@@ -48,6 +48,8 @@ public struct ContentProvider {
     using random: inout R
   ) -> Content {
     let weakKeys = Set(keyStats.weakestKeys.map(\.key))
+    let slowestPairs = keyStats.slowestPairs.map(\.letters)
+    let rank = { Self.ranked($0, for: weakKeys, pairs: slowestPairs) }
     let fellBack = source == .weakKeys && weakKeys.count < 5
     let source = fellBack ? .words : source
     let candidates: [String]
@@ -66,10 +68,10 @@ public struct ContentProvider {
       candidates = Self.prose.map { String($0.split(separator: "|", maxSplits: 3)[3]) }
       separator = " "
     case .weakKeys:
-      candidates = Array(Self.ranked(Self.words, for: weakKeys).prefix(100))
+      candidates = Array(rank(Self.words).prefix(100))
       separator = " "
     }
-    let drills = source == .weakKeys ? Array(Self.ranked(Self.drills, for: weakKeys).prefix(5)) : []
+    let drills = source == .weakKeys ? Array(rank(Self.drills).prefix(5)) : []
     var text = ""
     var picks = 0
     while text.count < 600 {
@@ -84,9 +86,13 @@ public struct ContentProvider {
     String(decoding: bytes, as: UTF8.self).split(separator: "\n").map(String.init)
   }
 
-  private static func ranked(_ items: [String], for keys: Set<Character>) -> [String] {
+  static func ranked(_ items: [String], for keys: Set<Character>, pairs: [String]) -> [String] {
     let scored: [(text: String, score: Int)] = items.map { item in
-      let score = item.filter { keys.contains($0) }.count
+      let letters = Array(item)
+      let pairCount = zip(letters, letters.dropFirst()).filter {
+        pairs.contains(String([$0.0, $0.1]))
+      }.count
+      let score = item.filter { keys.contains($0) }.count + 2 * pairCount
       return (item, score)
     }
     let sorted = scored.sorted { left, right in

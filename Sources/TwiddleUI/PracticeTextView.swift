@@ -7,12 +7,17 @@ public struct PracticeTextView: View {
   let characters: [Character]
   let lines: [Range<Int>]
   let blinks: Bool
+  let ghostOffset: Double?
 
-  public init(session: TypingSession, characters: [Character], lines: [Range<Int>], blinks: Bool) {
+  public init(
+    session: TypingSession, characters: [Character], lines: [Range<Int>], blinks: Bool,
+    ghostOffset: Double? = nil
+  ) {
     self.session = session
     self.characters = characters
     self.lines = lines
     self.blinks = blinks
+    self.ghostOffset = ghostOffset
   }
 
   private var visibleLines: [Range<Int>] {
@@ -54,6 +59,15 @@ public struct PracticeTextView: View {
       context.resolve(Text(String(repeating: "M", count: sampleCount)).font(font)).measure(
         in: .init(width: .infinity, height: .infinity)
       ).width / CGFloat(sampleCount)
+    if let ghostOffset, ghostOffset >= Double(line.lowerBound),
+      ghostOffset < Double(line.upperBound)
+    {
+      let rect = CGRect(
+        x: (ghostOffset - Double(line.lowerBound)) * cell - Theme.caretOffset,
+        y: Theme.caretInset, width: Theme.caretOffset,
+        height: Theme.rowHeight - 2 * Theme.caretInset)
+      context.fill(Path(rect), with: .color(theme.faint))
+    }
     for offset in line {
       let character = characters[offset]
       let waiting = offset == session.caret && session.pending != nil

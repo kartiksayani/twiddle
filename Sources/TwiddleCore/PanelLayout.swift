@@ -16,7 +16,7 @@ public enum PanelLayout {
   }
 
   public static func height(view: PracticeModel.ViewState, hints: Bool) -> Double {
-    view == .progress ? 185 : hints ? 252 : 136
+    view == .progress ? 256 : hints ? 252 : 136
   }
 
   public static func clamp(_ frame: Rect, to visible: Rect) -> Rect {

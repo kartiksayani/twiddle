@@ -84,8 +84,34 @@ struct StoreTests {
     #expect(result.state.panelOffset == .init(x: -10, y: 20))
     #expect(result.state.lastSprintLength == 60)
     #expect(result.state.codePack == nil)
+    #expect(result.state.today.rhythm == nil)
+    #expect(result.state.bestSprintWPM == nil)
     let model = PracticeModel(store: store(directory), random: FixedRandom())
     #expect(model.codePack == .all)
+  }
+
+  @Test func milestoneNineFixtureLoadsWithoutNewStatsFields() throws {
+    let directory = try directory()
+    defer { try! FileManager.default.removeItem(at: directory) }
+    let fixture = """
+      {"version":1,"resume":{"symbols":{"text":"a[i] += 2;","caret":0,"mistakes":[]}},
+       "today":{"date":"2026-10-30","activeSeconds":5,"netCorrectChars":10,
+                "presses":12,"correctPresses":10,"bestWPM":24},
+       "runs":[{"mode":"sprint","source":"symbols","startedAt":1793318400000,
+                "activeSeconds":30,"wpm":24,"accuracy":0.9,"chars":60}],
+       "keys":{"[":{"samples":20,"averageMs":240,"errorRate":0.1}},
+       "pairs":{},"panelOffset":{"x":0,"y":0},"hintsOn":false,"seenIntro":true,
+       "lastSprintLength":30,"codePack":"python"}
+      """
+    try Data(fixture.utf8).write(to: directory.appendingPathComponent("state.json"))
+    let loaded = store(directory).load()
+    #expect(loaded.errors.isEmpty)
+    #expect(loaded.state.codePack == .python)
+    #expect(loaded.state.resume["symbols"]?.text == "a[i] += 2;")
+    #expect(loaded.state.runs.first?.source == .symbols)
+    #expect(loaded.state.keys["["]?.samples == 20)
+    #expect(loaded.state.today.rhythm == nil)
+    #expect(loaded.state.bestSprintWPM == nil)
   }
 
   @Test func missingDirectoryIsCreatedOnSaveAndRoundTripRestoresEveryField() throws {

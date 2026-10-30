@@ -6,7 +6,7 @@ import TwiddleUI
 
 private enum Fixture: String, CaseIterable {
   case waiting, fixed, resumed, paused, code, codeGo, symbols, prose, weakKeys, weakFallback
-  case sprintReady, sprintRunning, sprintResult, capsule
+  case sprintReady, sprintRunning, sprintResult, sprintGhost, sprintNewBest, capsule
   case hintsOff, hintsPlain, hintsCapital, hintsSymbol, progressData, progressEmpty, progressOne,
     intro
 }
@@ -100,6 +100,28 @@ struct SnapshotExport {
                   .utf8))
           }
         }
+        if fixture == .sprintGhost || fixture == .sprintNewBest {
+          state.bestSprintWPM = [30: fixture == .sprintGhost ? 100 : 60]
+        }
+        if fixture == .progressData {
+          var rhythm = Rhythm()
+          for index in 0..<40 { rhythm.record(index.isMultiple(of: 2) ? 0.23 : 0.27) }
+          state.today.rhythm = rhythm
+          for (index, pair) in ["th", "st", "ch", "ou", "gh"].enumerated() {
+            state.pairs[pair] = try JSONDecoder().decode(
+              KeyStats.Entry.self,
+              from: Data("{\"samples\":10,\"averageMs\":\(380 - index * 17),\"errorRate\":0}".utf8))
+          }
+          state.keys["a"] = try JSONDecoder().decode(
+            KeyStats.Entry.self,
+            from: Data("{\"samples\":1000,\"averageMs\":132,\"errorRate\":0}".utf8))
+        }
+        if fixture == .progressOne {
+          state.keys = state.keys.filter { ["q", "z"].contains($0.key) }
+          state.pairs["th"] = try JSONDecoder().decode(
+            KeyStats.Entry.self,
+            from: Data("{\"samples\":10,\"averageMs\":245,\"errorRate\":0}".utf8))
+        }
         if fixture == .progressEmpty { state.today = .init(date: store.today) }
         try store.save(state)
         var time = 0.0
@@ -154,11 +176,12 @@ struct SnapshotExport {
           #expect(model.sourceLabel == "Symbols")
         case .prose: model.handle(.source(.prose))
         case .weakKeys, .weakFallback: model.handle(.source(.weakKeys))
-        case .sprintReady, .sprintRunning, .sprintResult:
+        case .sprintReady, .sprintRunning, .sprintResult, .sprintGhost, .sprintNewBest:
           model.handle(.sprint)
           if fixture != .sprintReady {
-            let count = fixture == .sprintRunning ? 86 : 210
-            let errors = fixture == .sprintRunning ? [75] : [16, 57, 103]
+            let running = fixture == .sprintRunning || fixture == .sprintGhost
+            let count = running ? 86 : 210
+            let errors = running ? [75] : [16, 57, 103]
             for index in 0..<count {
               time = 3 + Double(index) * 0.05
               if errors.contains(index) {
@@ -167,16 +190,18 @@ struct SnapshotExport {
               }
               model.handle(.character(model.session.expected!))
             }
-            time = fixture == .sprintRunning ? 15 : 33
+            time = running ? 15 : 33
             model.tick()
-            if fixture == .sprintResult {
+            if !running {
               time = 33.61
               model.tick()
               #expect(model.sprintState == .result)
+              if fixture == .sprintNewBest { #expect(model.result?.isNewBest == true) }
             } else {
               #expect(model.sprintState == .running)
               #expect(model.sprintRemaining == 18)
               #expect(model.headerCounters.wpm == 86)
+              if fixture == .sprintGhost { #expect(model.ghostOffset == 100) }
             }
           } else {
             #expect(model.sprintState == .ready)
@@ -199,7 +224,8 @@ struct SnapshotExport {
             ? Theme.capsuleOffset + Theme.capsuleHeight : 0)
         #expect(image.height == Int(expectedHeight * 2))
         if ![
-          Fixture.sprintRunning, .sprintResult, .hintsOff, .hintsPlain, .hintsCapital, .hintsSymbol,
+          Fixture.sprintRunning, .sprintResult, .sprintGhost, .sprintNewBest, .hintsOff,
+          .hintsPlain, .hintsCapital, .hintsSymbol,
           .progressData, .progressEmpty, .progressOne,
         ].contains(fixture) {
           #expect(model.stats.today.wpm == 78)
