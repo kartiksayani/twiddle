@@ -77,15 +77,19 @@ public struct KeyStats {
     return Array(ranked.prefix(5))
   }
 
-  public var slowestPair: Pair? {
-    let eligible = pairs.filter { $0.value.samples >= 2 }
+  public var slowestPairs: [Pair] { Array(rankedPairs(minimumSamples: 10).prefix(5)) }
+
+  public var slowestPair: Pair? { rankedPairs(minimumSamples: 2).first }
+
+  private func rankedPairs(minimumSamples: Int) -> [Pair] {
+    pairs.filter { $0.value.samples >= minimumSamples }
       .map { Pair(letters: $0.key, stats: $0.value) }
-    return eligible.sorted { left, right in
-      if left.stats.averageMs == right.stats.averageMs {
-        return left.letters < right.letters
+      .sorted { left, right in
+        if left.stats.averageMs == right.stats.averageMs {
+          return left.letters < right.letters
+        }
+        return left.stats.averageMs > right.stats.averageMs
       }
-      return left.stats.averageMs > right.stats.averageMs
-    }.first
   }
 
   public mutating func breakSequence() {
@@ -93,19 +97,26 @@ public struct KeyStats {
   }
 
   /// Times are supplied by the caller in monotonically increasing seconds.
-  public mutating func record(_ change: TypingSession.Change, at time: TimeInterval) {
-    guard let expected = change.expected, change.isPress else { return }
+  @discardableResult
+  public mutating func record(_ change: TypingSession.Change, at time: TimeInterval)
+    -> TimeInterval?
+  {
+    guard let expected = change.expected, change.isPress else { return nil }
     let key = Character(String(expected).lowercased())
     let recordsKey = key != " " && key != "\n"
     if recordsKey { keys[key, default: Entry()].recordError(!change.isCorrect) }
     guard change.isCorrect else {
       breakSequence()
-      return
+      return nil
     }
+    var latency: TimeInterval?
     if let previousCorrect {
       let gap = time - previousCorrect.time
       if gap >= 0 && gap < 2 {
-        if recordsKey { keys[key, default: Entry()].recordLatency(gap * 1000) }
+        latency = gap
+        if recordsKey {
+          keys[key, default: Entry()].recordLatency(gap * 1000)
+        }
         let letters = String([previousCorrect.key, key]).lowercased()
         if letters.utf8.count == 2 && letters.utf8.allSatisfy({ $0 >= 97 && $0 <= 122 }) {
           pairs[letters, default: Entry()].recordLatency(gap * 1000)
@@ -113,5 +124,6 @@ public struct KeyStats {
       }
     }
     previousCorrect = (key, time)
+    return latency
   }
 }

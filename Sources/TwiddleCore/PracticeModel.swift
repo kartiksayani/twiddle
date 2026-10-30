@@ -22,6 +22,8 @@ public final class PracticeModel {
     public let counters: StatsTracker.Counters
     public let mistakes: Int
     public let slowestPair: String?
+    public let rhythm: Rhythm
+    public let isNewBest: Bool
   }
 
   public private(set) var view: ViewState = .text
@@ -51,6 +53,19 @@ public final class PracticeModel {
     if let settings { return settings.hotkey }
     return .standard
   }
+  public var ghostOffset: Double? {
+    guard isVisible, view == .text, mode == .sprint, sprintState == .running,
+      let best = state.bestSprintWPM?[sprintLength], best.isFinite, best >= 0
+    else { return nil }
+    let offset = sprintElapsed * best * 5 / 60
+    let current = lines.lastIndex(where: { $0.lowerBound <= session.caret }) ?? 0
+    let visible = lines.dropFirst(current).prefix(2)
+    guard let first = visible.first, let last = visible.last,
+      offset >= Double(first.lowerBound), offset < Double(last.upperBound)
+    else { return nil }
+    return offset
+  }
+
   public var sprintRemaining: Int { max(0, Int(ceil(Double(sprintLength) - sprintElapsed))) }
   public var headerCounters: StatsTracker.Counters {
     mode == .flow
@@ -105,7 +120,19 @@ public final class PracticeModel {
     content = { provider.content(for: $0, keyStats: $2, codePack: $1, using: &random) }
     let loaded = store.load()
     state = loaded.state
-    stats = StatsTracker(today: loaded.state.today.counters, keyStats: loaded.state.keyStats)
+    stats = StatsTracker(
+      today: loaded.state.today.counters, keyStats: loaded.state.keyStats,
+      todayRhythm: loaded.state.today.rhythm ?? Rhythm())
+    if state.bestSprintWPM == nil {
+      var bests: [Int: Double] = [:]
+      for run in state.runs where run.mode == .sprint {
+        let length = [15, 30, 60].min {
+          abs(Double($0) - run.activeSeconds) < abs(Double($1) - run.activeSeconds)
+        }!
+        bests[length] = max(bests[length] ?? 0, run.wpm)
+      }
+      state.bestSprintWPM = bests
+    }
     if ![15, 30, 60].contains(state.lastSprintLength) { state.lastSprintLength = 30 }
     if let settings {
       source = settings.defaultSource
@@ -331,9 +358,13 @@ public final class PracticeModel {
       let completed = stats.endRun(at: run.startedAt + Double(sprintLength), completed: true)
     else { return }
     sprintElapsed = Double(sprintLength)
+    let previousBest = state.bestSprintWPM?[sprintLength]
+    let isNewBest = previousBest.map { completed.counters.wpm > $0 } ?? false
+    state.bestSprintWPM?[sprintLength] = max(previousBest ?? 0, completed.counters.wpm)
     completedSprint = SprintResult(
       counters: completed.counters, mistakes: session.mistakes.count,
-      slowestPair: completed.keyStats.slowestPair?.letters)
+      slowestPair: completed.keyStats.slowestPair?.letters, rhythm: completed.rhythm,
+      isNewBest: isNewBest)
     sprintState = .locked
     lockedUntil = time + 0.6
     resetDayIfNeeded()
@@ -381,7 +412,8 @@ public final class PracticeModel {
 
   private func syncToday() {
     state.today = Store.Today(
-      date: store.today, counters: stats.today, bestWPM: state.today.bestWPM)
+      date: store.today, counters: stats.today, bestWPM: state.today.bestWPM,
+      rhythm: stats.todayRhythm.count > 0 ? stats.todayRhythm : nil)
   }
 
   private func clearResumeNote() {

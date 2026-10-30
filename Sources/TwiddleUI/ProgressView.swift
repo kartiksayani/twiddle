@@ -13,6 +13,9 @@ public struct ProgressView: View {
         statistic(data.minutes, label: "minutes practised")
         statistic(data.average, label: "average wpm")
         statistic(data.best, label: "best wpm")
+        statistic(
+          data.rhythm.map { ($0 * 100).formatted(.number.precision(.fractionLength(0))) + "%" }
+            ?? "–", label: "rhythm")
       }
       trend
       weakestKeys
@@ -26,8 +29,12 @@ public struct ProgressView: View {
   }
 
   private func statistic(_ value: Double, label: String) -> some View {
+    statistic(value.formatted(.number.precision(.fractionLength(0))), label: label)
+  }
+
+  private func statistic(_ value: String, label: String) -> some View {
     HStack(alignment: .firstTextBaseline, spacing: Theme.progressColumnGap) {
-      Text(value.formatted(.number.precision(.fractionLength(0))))
+      Text(value)
         .font(.system(size: Theme.progressValueSize, weight: .semibold))
         .foregroundStyle(Theme(scheme).primary)
         .frame(minWidth: Theme.progressValueWidth, alignment: .leading)
@@ -105,30 +112,40 @@ public struct ProgressView: View {
     let theme = Theme(scheme)
     return VStack(alignment: .leading, spacing: Theme.progressColumnGap) {
       Text("Weakest keys").font(.system(size: Theme.labelSize))
-      HStack(spacing: Theme.progressColumnGap) {
-        ForEach(data.weakestKeys, id: \.key) { key in
-          VStack(spacing: Theme.resultActionGap) {
-            Text(String(key.key))
-              .font(.system(size: Theme.weakKeyFont, weight: .medium, design: .monospaced))
-              .frame(width: Theme.weakKeySize, height: Theme.weakKeySize)
-              .foregroundStyle(theme.primary)
-              .background(theme.cap, in: RoundedRectangle(cornerRadius: Theme.weakKeyRadius))
-              .overlay(alignment: .bottom) {
-                UnevenRoundedRectangle(
-                  bottomLeadingRadius: Theme.weakKeyRadius,
-                  bottomTrailingRadius: Theme.weakKeyRadius
-                ).fill(theme.hairStrong).frame(height: Theme.capsuleSeparatorWidth)
-              }
-              .clipShape(RoundedRectangle(cornerRadius: Theme.weakKeyRadius))
-            Text(key.stats.averageMs.formatted(.number.precision(.fractionLength(0))))
-              .font(.system(size: Theme.chipSize))
-          }
-        }
+      latencyRow(data.weakestKeys.map { (String($0.key), $0.stats.averageMs) })
+      Text(data.keyLatencyCaption).font(.system(size: Theme.chipSize))
+        .fixedSize(horizontal: false, vertical: true)
+      if !data.slowestPairs.isEmpty {
+        Text("Slowest pairs").font(.system(size: Theme.labelSize))
+        latencyRow(data.slowestPairs.map { ($0.letters, $0.stats.averageMs) })
       }
-      .frame(height: Theme.weakKeyRowHeight, alignment: .top)
-      Text("average ms per key").font(.system(size: Theme.chipSize))
     }
     .foregroundStyle(theme.typed)
     .frame(width: Theme.weakColumnWidth, alignment: .leading)
+  }
+
+  private func latencyRow(_ entries: [(label: String, milliseconds: Double)]) -> some View {
+    let theme = Theme(scheme)
+    return HStack(spacing: Theme.progressColumnGap) {
+      ForEach(entries, id: \.label) { entry in
+        VStack(spacing: Theme.resultActionGap) {
+          Text(entry.label)
+            .font(.system(size: Theme.weakKeyFont, weight: .medium, design: .monospaced))
+            .frame(width: Theme.weakKeySize, height: Theme.weakKeySize)
+            .foregroundStyle(theme.primary)
+            .background(theme.cap, in: RoundedRectangle(cornerRadius: Theme.weakKeyRadius))
+            .overlay(alignment: .bottom) {
+              UnevenRoundedRectangle(
+                bottomLeadingRadius: Theme.weakKeyRadius,
+                bottomTrailingRadius: Theme.weakKeyRadius
+              ).fill(theme.hairStrong).frame(height: Theme.capsuleSeparatorWidth)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: Theme.weakKeyRadius))
+          Text(entry.milliseconds.formatted(.number.precision(.fractionLength(0))))
+            .font(.system(size: Theme.chipSize))
+        }
+      }
+    }
+    .frame(height: Theme.weakKeyRowHeight, alignment: .top)
   }
 }

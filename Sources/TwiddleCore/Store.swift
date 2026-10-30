@@ -30,14 +30,19 @@ public struct Store {
     public var presses: Int
     public var correctPresses: Int
     public var bestWPM: Double
+    public var rhythm: Rhythm?
 
-    public init(date: String, counters: StatsTracker.Counters = .init(), bestWPM: Double = 0) {
+    public init(
+      date: String, counters: StatsTracker.Counters = .init(), bestWPM: Double = 0,
+      rhythm: Rhythm? = nil
+    ) {
       self.date = date
       activeSeconds = counters.activeSeconds
       netCorrectChars = counters.netCorrectChars
       presses = counters.presses
       correctPresses = counters.correctPresses
       self.bestWPM = bestWPM
+      self.rhythm = rhythm
     }
 
     public var counters: StatsTracker.Counters {
@@ -92,6 +97,7 @@ public struct Store {
     public var seenIntro = false
     public var lastSprintLength = 30
     public var codePack: CodePack?
+    public var bestSprintWPM: [Int: Double]?
 
     public init(date: String) {
       today = Today(date: date)

@@ -76,18 +76,28 @@ struct ContentProviderTests {
     #expect(content.text == words.text)
   }
 
-  @Test func weakKeysBiasWordsAndMixInSymbolDrills() {
+  @Test(arguments: [false, true])
+  func weakKeysBiasWordsAndMixInSymbolDrills(withPairs: Bool) {
     var random = SeededRandom(state: 1)
+    let trained = rankedStats(5)
+    let stats = withPairs ? trained : KeyStats(keys: trained.keys)
     let content = ContentProvider().content(
-      for: .weakKeys, keyStats: rankedStats(5), using: &random)
+      for: .weakKeys, keyStats: stats, using: &random)
     #expect(!content.fellBack)
     #expect(content.note == nil)
     #expect(content.text.contains { !$0.isLetter && !$0.isWhitespace })
     let selectedWords = content.text.split(separator: " ").filter { $0.allSatisfy(\.isLetter) }
     let weakKeys = Set("abcde")
+    func score(_ word: String) -> Int {
+      let letters = word.filter { weakKeys.contains($0) }.count
+      let pairs = zip(word, word.dropFirst()).filter {
+        $0 == $1 && weakKeys.contains($0)
+      }.count
+      return letters + (withPairs ? 2 * pairs : 0)
+    }
     let ranked = ContentProvider.words.sorted {
-      let left = $0.filter { weakKeys.contains($0) }.count
-      let right = $1.filter { weakKeys.contains($0) }.count
+      let left = score($0)
+      let right = score($1)
       return left == right ? $0 < $1 : left > right
     }
     let eligible = Set(ranked.prefix(100))

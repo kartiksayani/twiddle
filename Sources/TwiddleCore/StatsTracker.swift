@@ -45,6 +45,7 @@ public struct StatsTracker {
     public let startedAt: TimeInterval
     public fileprivate(set) var counters = Counters()
     public fileprivate(set) var keyStats = KeyStats()
+    public fileprivate(set) var rhythm = Rhythm()
     public fileprivate(set) var completed = false
 
     public var shouldSave: Bool {
@@ -53,20 +54,26 @@ public struct StatsTracker {
   }
 
   public private(set) var today = Counters()
+  public private(set) var todayRhythm = Rhythm()
   public private(set) var keyStats = KeyStats()
   public private(set) var run: Run?
   public private(set) var mode: Mode
   private var lastPress: TimeInterval?
 
-  public init(mode: Mode = .flow, today: Counters = Counters(), keyStats: KeyStats = KeyStats()) {
+  public init(
+    mode: Mode = .flow, today: Counters = Counters(), keyStats: KeyStats = KeyStats(),
+    todayRhythm: Rhythm = Rhythm()
+  ) {
     self.mode = mode
     self.today = today
+    self.todayRhythm = todayRhythm
     self.keyStats = keyStats
     self.keyStats.breakSequence()
   }
 
   public mutating func resetToday() {
     today = Counters()
+    todayRhythm = Rhythm()
     keyStats.breakSequence()
   }
 
@@ -108,8 +115,8 @@ public struct StatsTracker {
         }
       }
       lastPress = time
-      keyStats.record(change, at: time)
-      run?.keyStats.record(change, at: time)
+      if let gap = keyStats.record(change, at: time) { todayRhythm.record(gap) }
+      if let gap = run?.keyStats.record(change, at: time) { run?.rhythm.record(gap) }
     }
     run?.counters.apply(change)
     if mode == .sprint, let startedAt = run?.startedAt {

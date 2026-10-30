@@ -79,11 +79,11 @@ struct PanelLayoutTests {
   @Test func heightsMatchBoard() {
     #expect(PanelLayout.height(view: .text, hints: false) == 136)
     #expect(PanelLayout.height(view: .text, hints: true) == 252)
-    #expect(PanelLayout.height(view: .progress, hints: false) == 185)
+    #expect(PanelLayout.height(view: .progress, hints: false) == 256)
     #expect(PanelLayout.height(view: .intro, hints: false) == 136)
   }
 
-  @Test(arguments: [136.0, 252, 185, 136])
+  @Test(arguments: [136.0, 252, 256, 136])
   func resizingKeepsBottom(height: Double) {
     let frame = PanelLayout.clamp(
       .init(x: 200, y: 60, width: 720, height: height),

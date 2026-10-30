@@ -9,18 +9,28 @@ struct ResultView: View {
   var body: some View {
     let theme = Theme(scheme)
     HStack(alignment: .bottom, spacing: Theme.resultGap) {
-      HStack(alignment: .firstTextBaseline, spacing: Theme.labelGap) {
-        Text(result.counters.wpm.formatted(.number.precision(.fractionLength(0))))
-          .font(.system(size: Theme.resultValueSize, weight: .semibold))
-          .tracking(Theme.resultValueTracking)
-          .frame(height: Theme.resultValueHeight)
-          .foregroundStyle(theme.primary)
-        Text("wpm").font(.system(size: Theme.resultUnitSize)).foregroundStyle(theme.secondary)
+      VStack(alignment: .leading, spacing: Theme.resultStatGap) {
+        if result.isNewBest {
+          Text("New best").font(.system(size: Theme.labelSize)).foregroundStyle(theme.accent)
+        }
+        HStack(alignment: .firstTextBaseline, spacing: Theme.labelGap) {
+          Text(result.counters.wpm.formatted(.number.precision(.fractionLength(0))))
+            .font(.system(size: Theme.resultValueSize, weight: .semibold))
+            .tracking(Theme.resultValueTracking)
+            .frame(height: Theme.resultValueHeight)
+            .foregroundStyle(theme.primary)
+          Text("wpm").font(.system(size: Theme.resultUnitSize)).foregroundStyle(theme.secondary)
+        }
       }
       statistic(
         (result.counters.accuracy * 100).formatted(.number.precision(.fractionLength(1))) + "%",
         label: "accuracy")
       statistic(String(result.mistakes), label: "mistakes")
+      statistic(
+        result.rhythm.value.map {
+          ($0 * 100).formatted(.number.precision(.fractionLength(0))) + "%"
+        }
+          ?? "–", label: "rhythm")
       statistic(result.slowestPair ?? "–", label: "slowest pair", mono: true)
       Spacer(minLength: 0)
       VStack(alignment: .leading, spacing: Theme.resultActionGap) {
