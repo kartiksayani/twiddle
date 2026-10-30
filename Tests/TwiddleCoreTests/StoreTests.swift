@@ -161,6 +161,30 @@ struct StoreTests {
     #expect(try Data(contentsOf: file) == broken)
   }
 
+  @Test func encodingFailurePropagatesAndPreservesExistingFile() throws {
+    let directory = try directory()
+    defer { try! FileManager.default.removeItem(at: directory) }
+    let store = store(directory)
+    var state = populated(store)
+    try store.save(state)
+    let file = directory.appendingPathComponent("state.json")
+    let bytes = try Data(contentsOf: file)
+    state.today.bestWPM = .infinity
+    #expect(throws: EncodingError.self) { try store.save(state) }
+    #expect(try Data(contentsOf: file) == bytes)
+  }
+
+  @Test func directoryCreationFailurePropagatesAndPreservesBlockingFile() throws {
+    let directory = try directory()
+    defer { try! FileManager.default.removeItem(at: directory) }
+    let file = directory.appendingPathComponent("occupied")
+    let bytes = Data("keep".utf8)
+    try bytes.write(to: file)
+    let store = store(file)
+    #expect(throws: (any Error).self) { try store.save(populated(store)) }
+    #expect(try Data(contentsOf: file) == bytes)
+  }
+
   @Test func writeFailurePropagatesAndPreservesMemoryAndExistingFile() throws {
     let directory = try directory()
     defer {
