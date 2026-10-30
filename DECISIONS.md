@@ -19,3 +19,4 @@
 | 2026-10-30 | Codex `gpt-6.1-sol` at high effort implements and reviews, in separate threads. Claude architects and merges. | Kartik's call. |
 | 2026-10-30 | Delivery follows `ORCHESTRATOR.md`, a tighter version of Ariadne's: PR per milestone, one gate, tables before code, visual evidence, enforced doc limits. | Keeps Ariadne's learnings without its growth. |
 | 2026-10-30 | Views live in a separate `TwiddleUI` library. | They can be rendered to PNG in tests, so layout isn't written blind. |
+| 2026-10-31 | Practice lines wrap at 44 characters, not the board's 46. | SF Mono's 14.84 pt advance fits 45 cells in 668 pt, and the last cell must hold a trailing space or `↵`. |
