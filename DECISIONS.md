@@ -22,6 +22,7 @@
 | 2026-10-31 | Practice lines wrap at 44 characters, not the board's 46. | SF Mono's 14.84 pt advance fits 45 cells in 668 pt, and the last cell must hold a trailing space or `↵`. |
 | 2026-10-31 | The macOS shortcut conflict check runs only while recording a new shortcut. | `⌃⌥Space` is macOS's enabled input-source shortcut, so checking at launch disabled Twiddle's own default. |
 | 2026-10-31 | `lastSprintLength` is the only sprint-length value. | A second copy in UserDefaults overrode `⌘S` choices on relaunch. |
+| 2026-10-31 | Twiddle is exempt from `security-guidance` and Seezo. | Kartik's call. It's a personal app, and Seezo is a work server. |
 | 2026-10-31 | MIT licence. | Kartik's call. It's the usual choice for a small public app. |
 | 2026-10-31 | Prose comes from *Alice's Adventures in Wonderland* (1865) and *The Time Machine* (1895), checked against Project Gutenberg texts #11 and #35. | All 40 passages trace to the source. Three end early at a colon or semicolon. |
 | 2026-10-31 | README images are composed from the real views by `make screenshots`. | No screen capture or permission prompt. The desktop behind the panel is drawn, and the panel's blur isn't rendered. |

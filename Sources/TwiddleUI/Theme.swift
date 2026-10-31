@@ -108,6 +108,7 @@ public struct Theme {
   public static let actionHeight: CGFloat = 18
   public static let actionWidth: CGFloat = 26
   public static let capsuleHeight: CGFloat = 64
+  public static let finishedHeight: CGFloat = capsuleHeight / 2
   public static let capsuleReservedSourceWidth: CGFloat = 80
   public static let capsuleOffset: CGFloat = 10
   public static let capsuleGap: CGFloat = 10

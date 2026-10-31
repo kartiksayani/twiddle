@@ -56,6 +56,8 @@ final class PanelController: NSObject, NSWindowDelegate {
   private var mouseMonitor: Any?
   private var timer: Timer?
   private var motion = 0
+  private var capsuleMotion = 0
+  private var capsuleContent: PracticeModel.CapsuleContent?
   private let capsulePanel: NSPanel
   private let panel: TwiddlePanel
   private let model: PracticeModel
@@ -82,23 +84,6 @@ final class PanelController: NSObject, NSWindowDelegate {
     capsulePanel.hasShadow = true
     capsulePanel.hidesOnDeactivate = false
     capsulePanel.isReleasedWhenClosed = false
-    let capsuleView = NSHostingView(rootView: CommandCapsuleView(model: model))
-    let capsuleSize = capsuleView.fittingSize
-    let capsuleMaterial = NSVisualEffectView(frame: NSRect(origin: .zero, size: capsuleSize))
-    capsuleMaterial.material = .hudWindow
-    capsuleMaterial.blendingMode = .behindWindow
-    capsuleMaterial.state = .active
-    capsuleMaterial.maskImage = NSImage(size: capsuleSize, flipped: false) { rect in
-      NSColor.black.setFill()
-      NSBezierPath(roundedRect: rect, xRadius: Theme.capsuleRadius, yRadius: Theme.capsuleRadius)
-        .fill()
-      return true
-    }
-    capsuleView.frame = capsuleMaterial.bounds
-    capsuleView.autoresizingMask = [.width, .height]
-    capsuleMaterial.addSubview(capsuleView)
-    capsulePanel.contentView = capsuleMaterial
-    capsulePanel.setContentSize(capsuleSize)
     panel.level = .floating
     panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient]
     panel.hidesOnDeactivate = false
@@ -132,8 +117,10 @@ final class PanelController: NSObject, NSWindowDelegate {
     panel.delegate = self
     panel.router = KeyRouter(
       model: model, hide: { [weak self] in self?.handle(.escape) },
-      capsuleChanged: { [weak self] visible in self?.showCapsule(visible) },
-      layoutChanged: { [weak self] in self?.resize() })
+      layoutChanged: { [weak self] in
+        self?.resize()
+        self?.refreshCapsule()
+      })
   }
 
   func launch() {
@@ -154,8 +141,13 @@ final class PanelController: NSObject, NSWindowDelegate {
 
   func quit() {
     timer?.invalidate()
-    panel.router?.dismissCapsule()
     model.quit()
+    refreshCapsule()
+  }
+
+  func open(_ url: URL) {
+    model.handle(url)
+    refreshCapsule()
   }
 
   func practise() {
@@ -170,24 +162,67 @@ final class PanelController: NSObject, NSWindowDelegate {
 
   func windowDidResignKey(_ notification: Notification) { handle(.resignKey) }
 
-  private func showCapsule(_ visible: Bool) {
-    if visible {
-      guard !capsulePanel.isVisible else { return }
-      capsulePanel.setFrameOrigin(
-        NSPoint(
-          x: panel.frame.midX - capsulePanel.frame.width / 2,
-          y: panel.frame.maxY + Theme.capsuleOffset))
-      panel.addChildWindow(capsulePanel, ordered: .above)
-      capsulePanel.orderFront(nil)
-    } else {
-      panel.removeChildWindow(capsulePanel)
-      capsulePanel.orderOut(nil)
+  @ViewBuilder
+  private func capsuleView(_ content: PracticeModel.CapsuleContent) -> some View {
+    switch content {
+    case .commands: CommandCapsuleView(model: model)
+    case .finished: FinishedPillView()
     }
   }
 
+  private func refreshCapsule() {
+    let content = model.capsuleContent
+    guard content != capsuleContent else { return }
+    capsuleContent = content
+    capsuleMotion += 1
+    let generation = capsuleMotion
+    if let content {
+      let hosting = NSHostingView(rootView: capsuleView(content))
+      let size = hosting.fittingSize
+      let material = NSVisualEffectView(frame: NSRect(origin: .zero, size: size))
+      material.material = .hudWindow
+      material.blendingMode = .behindWindow
+      material.state = .active
+      material.updateMask(size: size, radius: Theme.capsuleRadius)
+      hosting.frame = material.bounds
+      hosting.autoresizingMask = [.width, .height]
+      material.addSubview(hosting)
+      capsulePanel.contentView = material
+      capsulePanel.setContentSize(size)
+      positionCapsule()
+      capsulePanel.alphaValue = 0
+      if !capsulePanel.isVisible {
+        panel.addChildWindow(capsulePanel, ordered: .above)
+        capsulePanel.orderFront(nil)
+      }
+      NSAnimationContext.runAnimationGroup { context in
+        context.duration = Theme.summonDuration
+        capsulePanel.animator().alphaValue = 1
+      }
+    } else {
+      NSAnimationContext.runAnimationGroup { context in
+        context.duration = Theme.hideDuration
+        capsulePanel.animator().alphaValue = 0
+      } completionHandler: { [weak self] in
+        MainActor.assumeIsolated {
+          guard let self, self.capsuleMotion == generation else { return }
+          self.panel.removeChildWindow(self.capsulePanel)
+          self.capsulePanel.orderOut(nil)
+        }
+      }
+    }
+  }
+
+  private func positionCapsule() {
+    capsulePanel.setFrameOrigin(
+      NSPoint(
+        x: panel.frame.midX - capsulePanel.frame.width / 2,
+        y: panel.frame.maxY + Theme.capsuleOffset))
+  }
+
   private func hide() {
-    panel.router?.dismissCapsule()
     model.hide()
+    refreshCapsule()
     timer?.invalidate()
     timer = nil
     if let mouseMonitor {
@@ -220,10 +255,7 @@ final class PanelController: NSObject, NSWindowDelegate {
       x: placement.x, y: placement.y, width: placement.width, height: placement.height)
     panel.setFrame(frame, display: true)
     (panel.contentView as? NSVisualEffectView)?.updateMask(size: size)
-    if capsulePanel.isVisible {
-      capsulePanel.setFrameOrigin(
-        NSPoint(x: frame.midX - capsulePanel.frame.width / 2, y: frame.maxY + Theme.capsuleOffset))
-    }
+    if capsulePanel.isVisible { positionCapsule() }
   }
 
   private func show() {
@@ -255,7 +287,7 @@ final class PanelController: NSObject, NSWindowDelegate {
       MainActor.assumeIsolated {
         self?.model.tick()
         self?.resize()
-        self?.panel.router?.tick()
+        self?.refreshCapsule()
       }
     }
     panel.makeKeyAndOrderFront(nil)
@@ -311,10 +343,10 @@ final class PanelController: NSObject, NSWindowDelegate {
 }
 
 extension NSVisualEffectView {
-  fileprivate func updateMask(size: CGSize) {
+  fileprivate func updateMask(size: CGSize, radius: CGFloat = Theme.radius) {
     maskImage = NSImage(size: size, flipped: false) { rect in
       NSColor.black.setFill()
-      NSBezierPath(roundedRect: rect, xRadius: Theme.radius, yRadius: Theme.radius).fill()
+      NSBezierPath(roundedRect: rect, xRadius: radius, yRadius: radius).fill()
       return true
     }
   }

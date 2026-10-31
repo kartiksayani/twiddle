@@ -5,34 +5,22 @@ import TwiddleCore
 final class KeyRouter {
   private let model: PracticeModel
   private let hide: () -> Void
-  private let capsuleChanged: (Bool) -> Void
   private let layoutChanged: () -> Void
   var openSettings: () -> Void = {}
-  private var capsule = CommandCapsule()
-
-  func tick() { updateCapsule(.tick) }
-  func dismissCapsule() { updateCapsule(.dismiss) }
-
-  private func updateCapsule(_ event: CommandCapsule.Event) {
-    let wasVisible = capsule.isVisible
-    capsule.handle(event, at: ProcessInfo.processInfo.systemUptime)
-    if capsule.isVisible != wasVisible { capsuleChanged(capsule.isVisible) }
-  }
 
   init(
     model: PracticeModel, hide: @escaping () -> Void,
-    capsuleChanged: @escaping (Bool) -> Void, layoutChanged: @escaping () -> Void
+    layoutChanged: @escaping () -> Void
   ) {
     self.layoutChanged = layoutChanged
     self.model = model
     self.hide = hide
-    self.capsuleChanged = capsuleChanged
   }
 
   func route(_ event: NSEvent) {
     defer { layoutChanged() }
     if event.type == .flagsChanged {
-      updateCapsule(event.modifierFlags.contains(.command) ? .commandDown : .commandUp)
+      model.handleCapsule(event.modifierFlags.contains(.command) ? .commandDown : .commandUp)
       return
     }
     guard event.type == .keyDown else { return }
@@ -41,7 +29,7 @@ final class KeyRouter {
       return
     }
     if event.modifierFlags.contains(.command) {
-      updateCapsule(.chord)
+      model.handleCapsule(.chord)
       guard !event.isARepeat else { return }
       if event.keyCode == 36 || event.keyCode == 76 {
         model.handle(.freshText)
