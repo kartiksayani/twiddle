@@ -57,7 +57,10 @@ public final class PracticeModel {
   public var mode: StatsTracker.Mode { stats.mode }
   public private(set) var sprintState: SprintState = .ready
   public private(set) var result: SprintResult?
-  public private(set) var contentNote: String?
+  public var contentNote: String? { pasteNote ?? sourceNote }
+  private var sourceNote: String?
+  private var pasteNote: String?
+  @ObservationIgnored private var pastedText: PastedText?
   public private(set) var sprintElapsed: TimeInterval = 0
   public private(set) var sprintLength: Int = 30
   public var hotkey: Hotkey? {
@@ -196,6 +199,7 @@ public final class PracticeModel {
     updateStats(at: time)
     let change = session.handle(input)
     clearResumeNote()
+    pasteNote = nil
     stats.record(change, at: time)
     if change.isPress {
       isPaused = false
@@ -203,7 +207,7 @@ public final class PracticeModel {
     }
     syncToday()
     if session.needsExtension {
-      session.append(content(source, codePack, stats.keyStats).text)
+      session.append(nextText())
       cacheLayout()
     }
   }
@@ -224,6 +228,8 @@ public final class PracticeModel {
       return
     }
     guard view != .intro else { return }
+    if case .source(.pasted) = command { return }
+    pasteNote = nil
     view = .text
     let cyclesCode: Bool
     if case .source(.code) = command { cyclesCode = source == .code } else { cyclesCode = false }
@@ -284,6 +290,31 @@ public final class PracticeModel {
     save()
   }
 
+  public func paste(_ input: String?) {
+    guard isVisible, view != .intro else { return }
+    let time = now()
+    settleElapsedSprint(at: time)
+    guard let input, let text = PastedText(input) else {
+      pasteNote = "Nothing to practise in the clipboard"
+      clearResumeNote()
+      return
+    }
+    updateStats(at: time)
+    if mode == .flow { rememberFlow() }
+    endCurrentRun(at: time)
+    pastedText = text
+    source = .pasted
+    flowSessions[.pasted] = nil
+    flowNotes[.pasted] = nil
+    pasteNote = nil
+    view = .text
+    if mode == .sprint { readySprint() } else { session = newSession() }
+    clearResumeNote()
+    isPaused = false
+    cacheLayout()
+    save()
+  }
+
   public func tick() {
     let time = now()
     settleElapsedSprint(at: time)
@@ -314,7 +345,7 @@ public final class PracticeModel {
     guard isVisible else { return }
     clearCapsule()
     finish()
-    flowSessions.removeAll()
+    flowSessions = flowSessions.filter { $0.key == .pasted }
     flowNotes.removeAll()
     isVisible = false
   }
@@ -425,9 +456,10 @@ public final class PracticeModel {
 
   private func save() {
     if mode == .flow { rememberFlow() }
-    for (source, session) in flowSessions where !session.text.isEmpty {
+    for (source, session) in flowSessions where source != .pasted && !session.text.isEmpty {
       state.resume[source.rawValue] = Store.Resume(session: session)
     }
+    state.resume[ContentProvider.Source.pasted.rawValue] = nil
     syncToday()
     state.capture(stats.keyStats)
     do {
@@ -454,42 +486,58 @@ public final class PracticeModel {
   }
 
   private func newSession() -> TypingSession {
+    TypingSession(text: nextText(), mode: mistakes)
+  }
+
+  private func nextText() -> String {
+    if source == .pasted {
+      sourceNote = nil
+      // A newline keeps the last and first tokens separate on each loop.
+      return pastedText.map { $0.text + "\n" } ?? ""
+    }
     let next = content(source, codePack, stats.keyStats)
-    contentNote = next.note
-    return TypingSession(text: next.text, mode: mistakes)
+    sourceNote = next.note
+    return next.text
   }
 
   private func rememberFlow() {
     guard !session.text.isEmpty else { return }
     flowSessions[source] = session
-    flowNotes[source] = contentNote
+    flowNotes[source] = sourceNote
   }
 
   private func restoreFlowSession() {
     if let saved = flowSessions[source] {
       session = saved
-      contentNote = flowNotes[source]
+      sourceNote = flowNotes[source]
     } else {
       restoreFlow(showNote: false)
     }
   }
 
   private func restoreFlow(showNote: Bool) {
-    if let resume = state.resume[source.rawValue], !resume.text.isEmpty {
+    pasteNote = nil
+    if source == .pasted {
+      session = flowSessions[.pasted] ?? newSession()
+      session.setMode(mistakes)
+      session.resumeAtWordStart()
+      sourceNote = nil
+      clearResumeNote()
+    } else if let resume = state.resume[source.rawValue], !resume.text.isEmpty {
       session = resume.session(mode: mistakes)
       session.resumeAtWordStart()
       if showNote {
         resumedWord = String(session.text.dropFirst(session.caret).prefix { !$0.isWhitespace })
         noteUntil = now() + 2
       }
-      contentNote =
+      sourceNote =
         source == .weakKeys && stats.keyStats.weakestKeys.count < 5
         ? ContentProvider.insufficientDataNote : nil
     } else {
       session = newSession()
       clearResumeNote()
     }
-    if session.needsExtension { session.append(content(source, codePack, stats.keyStats).text) }
+    if session.needsExtension { session.append(nextText()) }
   }
 
   private func readySprint() {

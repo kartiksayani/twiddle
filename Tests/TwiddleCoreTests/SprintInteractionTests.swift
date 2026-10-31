@@ -161,7 +161,7 @@ struct SprintInteractionTests {
     expectCompletedOriginalSprint(f)
   }
 
-  @Test(arguments: ContentProvider.Source.allCases)
+  @Test(arguments: ContentProvider.Source.defaultSources)
   func sourceAfterUntickedDeadlineSavesOriginalSprintOnce(source: ContentProvider.Source) throws {
     let f = PracticeFixture()
     defer { try! f.clean() }
@@ -409,7 +409,7 @@ struct SprintInteractionTests {
 
   @Test(
     arguments: [PracticeModel.SprintState.ready, .running, .locked, .result],
-    ContentProvider.Source.allCases)
+    ContentProvider.Source.defaultSources)
   func everySprintStateCanChangeSource(
     state: PracticeModel.SprintState, source: ContentProvider.Source
   ) throws {
@@ -584,7 +584,7 @@ struct SprintInteractionTests {
     let f = PracticeFixture()
     defer { try! f.clean() }
     f.model.summon()
-    for source in ContentProvider.Source.allCases {
+    for source in ContentProvider.Source.defaultSources {
       f.model.handle(.source(source))
       f.type(7)
     }
@@ -592,13 +592,13 @@ struct SprintInteractionTests {
     f.model.handle(.sprint)
     f.model.quit()
     let saved = f.store.load().state
-    #expect(saved.resume.count == ContentProvider.Source.allCases.count)
+    #expect(saved.resume.count == ContentProvider.Source.defaultSources.count)
     let relaunched = PracticeModel(store: f.store, random: FixedRandom(), now: { f.time })
     relaunched.summon()
     #expect(relaunched.mode == .flow)
     #expect(relaunched.source == .words)
     #expect(relaunched.sprintLength == 60)
-    for source in ContentProvider.Source.allCases {
+    for source in ContentProvider.Source.defaultSources {
       relaunched.handle(.source(source))
       var expected = try #require(saved.resume[source.rawValue]).session()
       expected.resumeAtWordStart()

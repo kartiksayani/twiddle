@@ -16,7 +16,10 @@ public final class Settings {
     didSet { defaults.set(defaultMode.rawValue, forKey: "defaultMode") }
   }
   public var defaultSource: ContentProvider.Source {
-    didSet { defaults.set(defaultSource.rawValue, forKey: "defaultSource") }
+    didSet {
+      if defaultSource == .pasted { defaultSource = oldValue }
+      defaults.set(defaultSource.rawValue, forKey: "defaultSource")
+    }
   }
   public var mistakes: TypingSession.MistakeMode {
     didSet { defaults.set(mistakes.rawValue, forKey: "mistakes") }
@@ -31,7 +34,9 @@ public final class Settings {
     hotkey = savedHotkey == "" ? nil : savedHotkey.flatMap(Hotkey.init(stored:)) ?? .standard
     defaultMode = defaults.string(forKey: "defaultMode").flatMap(StatsTracker.Mode.init) ?? .flow
     defaultSource =
-      defaults.string(forKey: "defaultSource").flatMap(ContentProvider.Source.init) ?? .words
+      ContentProvider.Source.defaultSources.first {
+        $0.rawValue == defaults.string(forKey: "defaultSource")
+      } ?? .words
     mistakes =
       defaults.string(forKey: "mistakes").flatMap(TypingSession.MistakeMode.init) ?? .strict
     theme = defaults.string(forKey: "theme").flatMap(Theme.init) ?? .system

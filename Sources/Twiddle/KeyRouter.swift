@@ -41,6 +41,9 @@ final class KeyRouter {
       case "3": model.handle(.source(.prose))
       case "4": model.handle(.source(.weakKeys))
       case "5": model.handle(.source(.symbols))
+      case "v":
+        guard model.isVisible, model.view != .intro else { return }
+        model.paste(NSPasteboard.general.string(forType: .string))
       case "f": model.handle(.flow)
       case "s": model.handle(.sprint)
       case "/": model.handle(.toggleHints)

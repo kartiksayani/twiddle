@@ -6,6 +6,7 @@ import TwiddleUI
 
 private enum Fixture: String, CaseIterable {
   case waiting, fixed, resumed, paused, code, codeGo, symbols, prose, weakKeys, weakFallback
+  case pasted, clipboardEmpty, pastedCapsule, sprintReadyClipboardEmpty
   case sprintReady, sprintRunning, sprintResult, sprintGhost, sprintNewBest, capsule, finished
   case hintsOff, hintsPlain, hintsCapital, hintsSymbol, progressData, progressEmpty, progressOne,
     intro
@@ -170,6 +171,16 @@ struct SnapshotExport {
           #expect(model.showsFinished)
           #expect(model.capsuleContent == .finished)
 
+        case .pasted, .pastedCapsule:
+          model.paste(
+            "Exact words from the clipboard, ready to practise.\n    Keep the next line just as close."
+          )
+          #expect(model.sourceLabel == "Pasted")
+          #expect(model.session.caret == 0)
+        case .clipboardEmpty, .sprintReadyClipboardEmpty:
+          if fixture == .sprintReadyClipboardEmpty { model.handle(.sprint) }
+          model.paste("🐈")
+          #expect(model.contentNote == "Nothing to practise in the clipboard")
         case .code: model.handle(.source(.code))
         case .codeGo:
           model.handle(.source(.code))
@@ -215,7 +226,9 @@ struct SnapshotExport {
         default: break
         }
         let content = VStack(spacing: Theme.capsuleOffset) {
-          if fixture == .capsule { CommandCapsuleView(model: model, snapshot: true) }
+          if fixture == .capsule || fixture == .pastedCapsule {
+            CommandCapsuleView(model: model, snapshot: true)
+          }
           if fixture == .finished { FinishedPillView(snapshot: true) }
           PanelView(model: model, snapshot: true)
         }
@@ -226,7 +239,7 @@ struct SnapshotExport {
         #expect(image.width == Int(Theme.panelSize.width * 2))
         let expectedHeight =
           model.panelHeight
-          + (fixture == .capsule
+          + (fixture == .capsule || fixture == .pastedCapsule
             ? Theme.capsuleOffset + Theme.capsuleHeight
             : fixture == .finished ? Theme.capsuleOffset + Theme.finishedHeight : 0)
         #expect(image.height == Int(expectedHeight * 2))

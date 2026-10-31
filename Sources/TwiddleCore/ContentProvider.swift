@@ -1,6 +1,8 @@
 public struct ContentProvider {
   public enum Source: String, Codable, CaseIterable, Sendable {
-    case words, code, prose, weakKeys, symbols
+    case words, code, prose, weakKeys, symbols, pasted
+
+    public static var defaultSources: [Source] { allCases.filter { $0 != .pasted } }
 
     public var label: String {
       switch self {
@@ -9,6 +11,7 @@ public struct ContentProvider {
       case .prose: "Prose"
       case .weakKeys: "Weak keys"
       case .symbols: "Symbols"
+      case .pasted: "Pasted"
       }
     }
   }
@@ -55,6 +58,8 @@ public struct ContentProvider {
     let candidates: [String]
     let separator: String
     switch source {
+    case .pasted:
+      return Content(text: "", fellBack: false)
     case .words:
       candidates = Self.words
       separator = " "

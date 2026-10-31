@@ -50,7 +50,7 @@ struct ContentProviderTests {
     }
   }
 
-  @Test(arguments: ContentProvider.Source.allCases)
+  @Test(arguments: ContentProvider.Source.defaultSources)
   func sourcesProduceExtendableTextWithRepeatableRandomness(source: ContentProvider.Source) {
     var first = SeededRandom(state: 42)
     var second = SeededRandom(state: 42)

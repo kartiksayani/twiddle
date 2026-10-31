@@ -72,16 +72,20 @@ struct ReadmeScreenshots {
     }
 
     // Centisecond boundaries alternate 80/90 ms delays without accumulating GIF rounding drift.
-    let boundaries = (0...120).map { (Double($0) / 12 * 100).rounded() / 100 }
+    let boundaries = (0...132).map { (Double($0) / 12 * 100).rounded() / 100 }
+    let frameCount = boundaries.count - 1
+    let finishedAt = 9.0
+    let pillAt = finishedAt + 0.08
+    let hideAt = pillAt + Theme.summonDuration + 1.5
     let data = NSMutableData()
     let encoder = try #require(
-      CGImageDestinationCreateWithData(data, UTType.gif.identifier as CFString, 120, nil))
+      CGImageDestinationCreateWithData(data, UTType.gif.identifier as CFString, frameCount, nil))
     CGImageDestinationSetProperties(
       encoder, [kCGImagePropertyGIFDictionary: [kCGImagePropertyGIFLoopCount: 0]] as CFDictionary)
     var eventIndex = 0
     var sawPending = false
     var sawCorrection = false
-    for frame in 0..<120 {
+    for frame in 0..<frameCount {
       let frameTime = boundaries[frame]
       while eventIndex < events.count && events[eventIndex].time <= frameTime {
         time = events[eventIndex].time
@@ -101,11 +105,12 @@ struct ReadmeScreenshots {
         let panel = try #require(panelRenderer.cgImage)
         let summon = min(1, max(0, (frameTime - 0.75) / Theme.summonDuration))
         let eased = UnitCurve.easeOut.value(at: summon)
-        let fade = min(1, max(0, (frameTime - 9.15) / Theme.hideDuration))
+        let pill = min(1, max(0, (frameTime - pillAt) / Theme.summonDuration))
+        let fade = min(1, max(0, (frameTime - hideAt) / Theme.hideDuration))
         let scene = DesktopScene(
           panel: panel, scheme: .dark, panelOpacity: eased * (1 - fade),
-          panelRise: Theme.summonRise * (1 - eased),
-          elapsed: 134 + Int(min(frameTime, 9) + 0.5), finished: frameTime >= 9)
+          panelRise: Theme.summonRise * (1 - eased), pillOpacity: pill * (1 - fade),
+          elapsed: 134 + Int(min(frameTime, finishedAt) + 0.5), finished: frameTime >= finishedAt)
         let image = try render(scene, size: CGSize(width: 1440, height: 900), scale: 800.0 / 1440)
         let delay = ((boundaries[frame + 1] - frameTime) * 100).rounded() / 100
         CGImageDestinationAddImage(
@@ -127,9 +132,9 @@ struct ReadmeScreenshots {
     try (data as Data).write(to: url)
 
     let source = try #require(CGImageSourceCreateWithData(data, nil))
-    #expect(CGImageSourceGetCount(source) == 120)
+    #expect(CGImageSourceGetCount(source) == frameCount)
     var duration = 0.0
-    for frame in 0..<120 {
+    for frame in 0..<frameCount {
       let properties = try #require(
         CGImageSourceCopyPropertiesAtIndex(source, frame, nil) as? [CFString: Any])
       #expect(properties[kCGImagePropertyPixelWidth] as? Int == 800)
@@ -137,7 +142,8 @@ struct ReadmeScreenshots {
       let gif = try #require(properties[kCGImagePropertyGIFDictionary] as? [CFString: Any])
       duration += try #require(gif[kCGImagePropertyGIFUnclampedDelayTime] as? Double)
     }
-    #expect(abs(duration - 10) < 0.001)
+    #expect(abs(duration - 11) < 0.001)
+    #expect(duration < 12)
     let properties = try #require(CGImageSourceCopyProperties(source, nil) as? [CFString: Any])
     let gif = try #require(properties[kCGImagePropertyGIFDictionary] as? [CFString: Any])
     #expect(gif[kCGImagePropertyGIFLoopCount] as? Int == 0)
@@ -243,6 +249,7 @@ private struct DesktopScene: View {
   let scheme: ColorScheme
   var panelOpacity = 1.0
   var panelRise = 0.0
+  var pillOpacity = 0.0
   var elapsed = 134
   var finished = false
 
@@ -257,6 +264,12 @@ private struct DesktopScene: View {
       SnapshotPanel(image: panel)
         .opacity(panelOpacity)
         .position(x: 720, y: 732 + panelRise)
+      FinishedPillView(snapshot: true)
+        .opacity(pillOpacity)
+        .position(
+          x: 720,
+          y: 732 + panelRise - CGFloat(panel.height) / 4
+            - Theme.capsuleOffset - Theme.finishedHeight / 2)
     }
     .environment(\.colorScheme, scheme)
   }
