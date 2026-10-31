@@ -26,3 +26,4 @@
 | 2026-10-31 | MIT licence. | Kartik's call. It's the usual choice for a small public app. |
 | 2026-10-31 | Prose comes from *Alice's Adventures in Wonderland* (1865) and *The Time Machine* (1895), checked against Project Gutenberg texts #11 and #35. | All 40 passages trace to the source. Three end early at a colon or semicolon. |
 | 2026-10-31 | README images are composed from the real views by `make screenshots`. | No screen capture or permission prompt. The desktop behind the panel is drawn, and the panel's blur isn't rendered. |
+| 2026-10-31 | On-device drills are dropped. | Kartik's call. They needed Apple Intelligence, which device management restricts on the build Mac, so a prototype couldn't be judged. |

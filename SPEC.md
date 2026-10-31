@@ -226,7 +226,7 @@ Approved by Kartik on 2026-10-31. Where this section differs from the sections a
 
 ### Later
 
-Notarized download and Homebrew cask. On-device drills, only if a prototype looks and feels good, and it needs Apple Intelligence turned on.
+Notarized download and Homebrew cask.
 
 ## Out of v1
 
