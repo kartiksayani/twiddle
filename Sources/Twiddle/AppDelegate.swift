@@ -53,6 +53,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     hotkey.stop()
   }
 
+  func application(_ application: NSApplication, open urls: [URL]) {
+    for url in urls { panel.open(url) }
+  }
+
   func applicationDidFinishLaunching(_ notification: Notification) {
     recorder.registerSaved()
     statusMenu = StatusMenu(

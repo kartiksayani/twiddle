@@ -18,6 +18,17 @@ public final class PracticeModel {
     case ready, running, locked, result
   }
 
+  public enum CapsuleContent: Sendable {
+    case commands, finished
+  }
+
+  public var showsFinished: Bool { finishedUntil != nil }
+  public var capsuleContent: CapsuleContent? {
+    guard isVisible else { return nil }
+    if commandCapsule.isVisible { return .commands }
+    return showsFinished ? .finished : nil
+  }
+
   public struct SprintResult {
     public let counters: StatsTracker.Counters
     public let mistakes: Int
@@ -99,6 +110,8 @@ public final class PracticeModel {
   @ObservationIgnored private var flowNotes: [ContentProvider.Source: String] = [:]
   @ObservationIgnored private var lockedUntil: TimeInterval?
   @ObservationIgnored private var completedSprint: SprintResult?
+  private var commandCapsule = CommandCapsule()
+  private var finishedUntil: TimeInterval?
 
   public init<R: RandomNumberGenerator>(
     store: Store, random: R, mistakes: TypingSession.MistakeMode = .strict,
@@ -275,6 +288,8 @@ public final class PracticeModel {
     let time = now()
     settleElapsedSprint(at: time)
     guard isVisible else { return }
+    commandCapsule.handle(.tick, at: time)
+    if let finishedUntil, time >= finishedUntil { self.finishedUntil = nil }
     if let noteUntil, time >= noteUntil {
       resumedWord = nil
       self.noteUntil = nil
@@ -297,6 +312,7 @@ public final class PracticeModel {
 
   public func hide() {
     guard isVisible else { return }
+    clearCapsule()
     finish()
     flowSessions.removeAll()
     flowNotes.removeAll()
@@ -304,8 +320,24 @@ public final class PracticeModel {
   }
 
   public func quit() {
+    clearCapsule()
     finish()
     isVisible = false
+  }
+
+  public func handle(_ url: URL) {
+    guard isVisible, WaitSignal(url: url) == .done else { return }
+    finishedUntil = now() + 10
+  }
+
+  public func handleCapsule(_ event: CommandCapsule.Event) {
+    guard isVisible else { return }
+    commandCapsule.handle(event, at: now())
+  }
+
+  private func clearCapsule() {
+    finishedUntil = nil
+    commandCapsule.handle(.dismiss, at: now())
   }
 
   public func setHints(_ enabled: Bool) {

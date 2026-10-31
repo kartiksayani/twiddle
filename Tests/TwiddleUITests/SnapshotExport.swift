@@ -6,7 +6,7 @@ import TwiddleUI
 
 private enum Fixture: String, CaseIterable {
   case waiting, fixed, resumed, paused, code, codeGo, symbols, prose, weakKeys, weakFallback
-  case sprintReady, sprintRunning, sprintResult, sprintGhost, sprintNewBest, capsule
+  case sprintReady, sprintRunning, sprintResult, sprintGhost, sprintNewBest, capsule, finished
   case hintsOff, hintsPlain, hintsCapital, hintsSymbol, progressData, progressEmpty, progressOne,
     intro
 }
@@ -165,6 +165,11 @@ struct SnapshotExport {
         case .intro:
           #expect(model.view == .intro)
 
+        case .finished:
+          model.handle(URL(string: "twiddle://done")!)
+          #expect(model.showsFinished)
+          #expect(model.capsuleContent == .finished)
+
         case .code: model.handle(.source(.code))
         case .codeGo:
           model.handle(.source(.code))
@@ -211,6 +216,7 @@ struct SnapshotExport {
         }
         let content = VStack(spacing: Theme.capsuleOffset) {
           if fixture == .capsule { CommandCapsuleView(model: model, snapshot: true) }
+          if fixture == .finished { FinishedPillView(snapshot: true) }
           PanelView(model: model, snapshot: true)
         }
         .environment(\.colorScheme, scheme)
@@ -221,7 +227,8 @@ struct SnapshotExport {
         let expectedHeight =
           model.panelHeight
           + (fixture == .capsule
-            ? Theme.capsuleOffset + Theme.capsuleHeight : 0)
+            ? Theme.capsuleOffset + Theme.capsuleHeight
+            : fixture == .finished ? Theme.capsuleOffset + Theme.finishedHeight : 0)
         #expect(image.height == Int(expectedHeight * 2))
         if ![
           Fixture.sprintRunning, .sprintResult, .sprintGhost, .sprintNewBest, .hintsOff,
