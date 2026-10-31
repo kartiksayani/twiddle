@@ -158,6 +158,7 @@ public struct Store {
       decoder.dateDecodingStrategy = .millisecondsSince1970
       var state = try decoder.decode(State.self, from: data)
       guard state.version <= Self.currentVersion else { throw Failure.newerVersion }
+      state.resume[ContentProvider.Source.pasted.rawValue] = nil
       state.runs = Array(state.runs.sorted { $0.startedAt > $1.startedAt }.prefix(20))
       if state.today.date != fresh.today.date { state.today = fresh.today }
       return LoadResult(state: state, errors: [])
@@ -179,6 +180,7 @@ public struct Store {
 
   public func save(_ state: State) throws {
     var saved = state
+    saved.resume[ContentProvider.Source.pasted.rawValue] = nil
     saved.runs = Array(saved.runs.sorted { $0.startedAt > $1.startedAt }.prefix(20))
     let encoder = JSONEncoder()
     encoder.dateEncodingStrategy = .millisecondsSince1970

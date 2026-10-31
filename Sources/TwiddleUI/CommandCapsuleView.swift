@@ -20,7 +20,7 @@ public struct CommandCapsuleView: View {
         item("⌘3", "Prose", selected: model.source == .prose)
         item("⌘4", "Weak keys", selected: model.source == .weakKeys)
         item("⌘5", "Symbols", selected: model.source == .symbols)
-        Spacer().frame(width: Theme.capsuleReservedSourceWidth)
+        item("⌘V", "Paste", selected: model.source == .pasted)
       }
       .frame(height: Theme.capsuleHeight / 2)
       HStack(spacing: Theme.capsuleGap) {

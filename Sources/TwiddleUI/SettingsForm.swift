@@ -66,7 +66,7 @@ public struct SettingsForm: View {
           separator
           row("Default source") {
             menu(settings.defaultSource.label) {
-              ForEach(ContentProvider.Source.allCases, id: \.self) { source in
+              ForEach(ContentProvider.Source.defaultSources, id: \.self) { source in
                 Button(source.label) { settings.defaultSource = source }
               }
             }

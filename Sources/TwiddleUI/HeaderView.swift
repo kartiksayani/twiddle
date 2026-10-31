@@ -44,6 +44,11 @@ public struct HeaderView: View {
         if let resumedWord {
           Text("Resumed").fontWeight(.medium).foregroundStyle(theme.accent)
           Text("from the start of “\(resumedWord)”").foregroundStyle(theme.typed)
+        } else if let note {
+          Text(modeLabel).fontWeight(.medium).foregroundStyle(theme.primary)
+          Text("·").foregroundStyle(theme.faint)
+          Text(source).foregroundStyle(theme.secondary)
+          Text(note).foregroundStyle(theme.typed)
         } else if blank {
           Text(modeLabel).fontWeight(.medium).foregroundStyle(theme.accent)
           Text("starts on your first key").foregroundStyle(theme.typed)
@@ -51,7 +56,6 @@ public struct HeaderView: View {
           Text(modeLabel).fontWeight(.medium).foregroundStyle(theme.primary)
           Text("·").foregroundStyle(theme.faint)
           Text(source).foregroundStyle(theme.secondary)
-          if let note { Text(note).foregroundStyle(theme.typed) }
         }
       }
       Spacer(minLength: Theme.labelGap)

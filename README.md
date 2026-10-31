@@ -7,7 +7,7 @@
 **Your agent is thinking. Your build is running. Slack is typing…**<br>
 Press a hotkey, get faster at typing right where you are, and vanish.
 
-<img src="docs/screenshots/demo.gif" alt="While a coding agent thinks in a terminal, the Twiddle panel appears, a few lines get typed, and it vanishes when the agent finishes" width="800">
+<img src="docs/screenshots/demo.gif" alt="While a coding agent thinks in a terminal, the Twiddle panel appears and a few lines get typed. A Finished pill appears when the agent is done, and the panel vanishes" width="800">
 
 `macOS 26` · `Apple silicon` · `no account` · `no permissions` · `nothing uploaded` · `MIT`
 
@@ -21,6 +21,28 @@ Start typing. Press `Esc` when the wait is over. Next time, Flow picks up at the
 
 No session to start. No score to protect. No timer unless you ask for one.
 
+## Stop checking the terminal
+
+Tell Twiddle when the wait is over, and a quiet `Finished` pill appears above the panel for 10 seconds. It doesn't take focus or interrupt your typing. If the panel is hidden, nothing appears.
+
+```sh
+make test; open -g twiddle://done
+```
+
+For Claude Code, add a `Stop` hook to `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "open -g twiddle://done" }] }
+    ]
+  }
+}
+```
+
+Keep the `-g`, so nothing comes to the front.
+
 ## What's inside
 
 <table>
@@ -29,7 +51,7 @@ No session to start. No score to protect. No timer unless you ask for one.
 <td width="50%"><img src="docs/screenshots/sprint.png" alt="A sprint result card"><br><b>Sprint</b><br>15, 30 or 60 seconds, then a result card. <code>⌘S</code> and go.</td>
 </tr>
 <tr>
-<td><img src="docs/screenshots/code.png" alt="Practice text made of source code"><br><b>Practice what you actually type</b><br>Go, Python, TypeScript, SQL and Shell, one pack at a time. Press <code>⌘2</code> again to switch. Common words and classic prose are there too.</td>
+<td><img src="docs/screenshots/code.png" alt="Practice text made of source code"><br><b>Practice what you actually type</b><br>Go, Python, TypeScript, SQL and Shell, one pack at a time. Press <code>⌘2</code> again to switch. Or press <code>⌘V</code> to practise whatever's in your clipboard.</td>
 <td><img src="docs/screenshots/hints.png" alt="Finger hints on a keyboard map"><br><b>Finger hints</b><br>An optional keyboard map shows which finger should take the next key. It guides, and never grades.</td>
 </tr>
 <tr>
@@ -48,6 +70,7 @@ No session to start. No score to protect. No timer unless you ask for one.
 |---|---|
 | `⌃⌥Space` | Summon or dismiss |
 | `Esc` | Dismiss |
+| `⌘V` | Practise the clipboard's text |
 | `⌘F` | Flow |
 | `⌘S` | Sprint. Press again to cycle 15, 30 and 60 seconds before you start, or to restart a running sprint |
 | `⌘1` `⌘2` `⌘3` `⌘4` `⌘5` | Words, Code, Prose, Weak keys, Symbols. On Code, `⌘2` cycles the language packs |
@@ -76,7 +99,9 @@ To change the hotkey, open Settings and click Summon hotkey. Type a shortcut con
 
 ## Your data stays yours
 
-Twiddle only reads keys while its panel is open, and asks for no Accessibility or Input Monitoring access. Practice data lives in `~/Library/Application Support/Twiddle/state.json`, and preferences use macOS UserDefaults. Nothing is uploaded. macOS manages Launch at login.
+Twiddle only reads keys while its panel is open, and asks for no Accessibility or Input Monitoring access. Practice data lives in `~/Library/Application Support/Twiddle/state.json`, and preferences use macOS UserDefaults. Nothing is uploaded.
+
+Twiddle reads the clipboard only when you press `⌘V`. Pasted text stays in memory and is never saved, so it's gone when you quit. macOS manages Launch at login.
 
 ## Credits
 
